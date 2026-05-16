@@ -1,6 +1,8 @@
 import { chromium } from '@playwright/test';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
+
+mkdirSync(join(process.cwd(), 'public', 'thumbnails'), { recursive: true });
 
 const dataPath = join(process.cwd(), 'data', 'presentations.json');
 const presentations = JSON.parse(readFileSync(dataPath, 'utf-8')) as Array<{

@@ -1,8 +1,12 @@
 import { chromium } from '@playwright/test';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { PDFDocument } from 'pdf-lib';
 import PptxGenJS from 'pptxgenjs';
+
+mkdirSync(join(process.cwd(), 'public', 'exports', 'pdf'), { recursive: true });
+mkdirSync(join(process.cwd(), 'public', 'exports', 'ppt'), { recursive: true });
+mkdirSync(join(process.cwd(), 'public', 'thumbnails'), { recursive: true });
 
 const dataPath = join(process.cwd(), 'data', 'presentations.json');
 const presentations = JSON.parse(readFileSync(dataPath, 'utf-8')) as Array<{
