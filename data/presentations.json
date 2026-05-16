@@ -1,0 +1,13 @@
+[
+  {
+    "id": "1",
+    "slug": "cuando-la-ia-programa",
+    "title": "Cuando la IA Programa",
+    "description": "Una exploración sobre cómo la inteligencia artificial está transformando el rol del programador y el proceso de desarrollo de software.",
+    "event": "Jornada de Tecnología — Universidad",
+    "date": "2026-05-10",
+    "tags": ["ai", "software-engineering"],
+    "htmlPath": "presentations/cuando-la-ia-programa.html",
+    "thumbnailPath": "thumbnails/cuando-la-ia-programa.png"
+  }
+]

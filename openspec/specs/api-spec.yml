@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: "{project-name} API"
+  description: "{project description}"
+  version: 1.0.0
+
+# Add your API endpoints here.
+# This file is the source of truth for all API contracts.
+# Update it whenever endpoints are added, modified, or removed.
+#
+# Example endpoint structure:
+#
+# paths:
+#   /resources:
+#     post:
+#       summary: Create a resource
+#       requestBody:
+#         required: true
+#         content:
+#           application/json:
+#             schema:
+#               type: object
+#               required: [field1, field2]
+#               properties:
+#                 field1:
+#                   type: string
+#                 field2:
+#                   type: string
+#       responses:
+#         '201':
+#           description: Created
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   id:
+#                     type: string
+#         '400':
+#           description: Validation error
+#           content:
+#             application/json:
+#               schema:
+#                 type: object
+#                 properties:
+#                   error:
+#                     type: string
+#         '500':
+#           description: Internal server error
+
+paths:

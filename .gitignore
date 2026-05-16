@@ -1,0 +1,38 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Claude Code local config
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+.next/
+out/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# Generated exports (cached, reproducible on demand)
+public/exports/
+
+# Generated thumbnails (reproducible via generate-thumbnails script)
+public/thumbnails/

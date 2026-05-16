@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuando la IA Programa - Maximiliano Rodríguez</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Arimo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* CONFIGURACIÓN BASE Y RESET */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Arimo', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* MOTOR DE ESCALADO DINÁMICO (PRESERVA PROPORCIÓN 16:9) */
+        #presentation-scaler {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #presentation-viewport {
+            width: 1280px;
+            height: 720px;
+            position: relative;
+            background-color: #0A0A0A;
+            border: 1px solid #222;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            flex-shrink: 0;
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            padding: 55px 80px;
+            z-index: 1;
+            background-color: #0A0A0A;
+        }
+
+        .slide-container.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        /* REJILLA TECNOLÓGICA Y DESTELLES NEÓN DE FONDO */
+        .tech-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .neon-glow-cyan {
+            position: absolute;
+            top: -200px;
+            right: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 229, 255, 0.06) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .neon-glow-green {
+            position: absolute;
+            bottom: -200px;
+            left: -200px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(0, 255, 135, 0.04) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* HEADER Y FOOTER DE DIAPOSITIVAS */
+        .header {
+            position: absolute;
+            top: 25px;
+            left: 80px;
+            right: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #00E5FF;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Space Grotesk', sans-serif;
+            z-index: 20;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 25px;
+            left: 80px;
+            right: 80px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'Space Grotesk', sans-serif;
+            z-index: 20;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 8px;
+        }
+
+        /* TIPOGRAFÍA Y ENFOQUE VISUAL */
+        h1, h2, h3, .slide-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+
+        .slide-title {
+            font-size: 38px;
+            color: #00FF87; /* Verde Neón */
+            margin-top: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 5;
+        }
+
+        .slide-title::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 35px;
+            background: #00E5FF;
+            border-radius: 3px;
+        }
+
+        p, li { font-size: 17px; line-height: 1.5; color: #d0d0d0; }
+
+        .accent-cyan { color: #00E5FF; text-shadow: 0 0 10px rgba(0,229,255,0.2); }
+        .accent-green { color: #00FF87; text-shadow: 0 0 10px rgba(0,255,135,0.2); }
+        .accent-yellow { color: #FFE600; text-shadow: 0 0 10px rgba(255,230,0,0.2); }
+
+        /* CONTENIDO AREA */
+        .content-area {
+            flex-grow: 1;
+            margin-top: 30px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        /* GRID LAYOUTS */
+        .two-column { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; align-items: start; }
+
+        .image-wrapper {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            height: 320px;
+            background: #0f1319;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* LISTAS CON ESTILO */
+        ul { list-style: none; }
+        li { margin-bottom: 12px; position: relative; padding-left: 25px; }
+        li::before {
+            content: '//';
+            position: absolute;
+            left: 0;
+            color: #FFE600;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+        }
+
+        /* CARÁTULA DISEÑO */
+        .caratula {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            padding: 0;
+            height: 100%;
+        }
+
+        .caratula-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 40px 60px 80px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .caratula-right {
+            background: radial-gradient(circle at center, rgba(0, 255, 135, 0.05) 0%, transparent 75%), #08080c;
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .logo-uno-container {
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.15));
+        }
+
+        .logo-uno-container img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .spec-sheet-card {
+            background: rgba(10, 10, 10, 0.85);
+            border: 1px solid rgba(0, 255, 135, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 320px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .spec-sheet-card::before {
+            content: 'SPEC-SHEET // CONGRESO';
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #00FF87;
+            color: #000;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .spec-item {
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .spec-item:last-child { margin-bottom: 0; }
+        .spec-label { color: rgba(255,255,255,0.4); text-transform: uppercase; font-size: 10px; display: block; }
+        .spec-val { color: #fff; font-weight: 500; }
+
+        .big-title {
+            font-size: 46px;
+            line-height: 1.15;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .tech-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 229, 255, 0.1);
+            border: 1px solid #00E5FF;
+            color: #00E5FF;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        /* DIAPOSITIVA SOBRE MÍ */
+        .bio-container {
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .bio-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .bio-role {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+
+        .bio-icon {
+            font-size: 24px;
+            color: #00E5FF;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 229, 255, 0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* TILES DE CONTENIDO */
+        .tile {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+        .tile:hover {
+            border-color: rgba(0, 229, 255, 0.3);
+            background: rgba(0, 229, 255, 0.01);
+        }
+        .tile i { font-size: 28px; color: #00FF87; margin-bottom: 10px; }
+        .tile h3 { color: #00E5FF; font-size: 18px; margin-bottom: 6px; }
+
+        /* TABLAS */
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th { text-align: left; padding: 12px 18px; background: #00FF87; color: #000; font-family: 'Space Grotesk'; font-weight: bold; font-size: 16px; }
+        td { padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 15px; }
+
+        /* TIMELINE */
+        .timeline { display: flex; justify-content: space-between; position: relative; margin-top: 40px; padding: 0 15px; }
+        .timeline::after { content: ''; position: absolute; top: 22px; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.1); z-index: 0; }
+        .timeline-item { width: 22%; position: relative; z-index: 1; text-align: center; }
+        .timeline-dot { width: 44px; height: 44px; background: #0A0A0A; border-radius: 50%; margin: 0 auto 12px; border: 3px solid #00FF87; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #00FF87; transition: all 0.3s; }
+
+        /* CONTROLES DE NAVEGACIÓN */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 229, 255, 0.2);
+            color: #00E5FF;
+        }
+
+        #slide-indicator {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ccc;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* GRÁFICOS DE BARRA */
+        .bar-chart { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 10px; }
+        .bar-row { display: flex; align-items: center; gap: 20px; }
+        .bar-label { width: 200px; text-align: right; font-weight: bold; color: #00E5FF; font-size: 15px; }
+        .bar-outer { flex-grow: 1; height: 26px; background: rgba(255,255,255,0.05); border-radius: 13px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .bar-inner { height: 100%; background: linear-gradient(90deg, #00FF87, #00E5FF); width: 0; transition: width 1s cubic-bezier(0.1, 0.8, 0.2, 1); }
+
+        /* QUOTE */
+        .quote-layout { text-align: center; padding: 15px 40px; }
+        .quote-text { font-size: 30px; font-family: 'Space Grotesk'; color: #FFE600; font-style: italic; margin-bottom: 20px; line-height: 1.4; }
+        .quote-author { font-size: 18px; color: #00E5FF; }
+
+        .qa-layout { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+    </style>
+</head>
+<body>
+
+<div id="presentation-scaler">
+    <div id="presentation-viewport">
+
+        <!-- SLIDE 1: PORTADA -->
+        <div class="slide-container active" id="slide1" style="padding: 0;">
+            <div class="tech-grid"></div>
+            <div class="neon-glow-cyan"></div>
+            <div class="caratula">
+                <div class="caratula-left">
+                    <div class="tech-badge">
+                        <i class="fa-solid fa-microchip"></i> Charla de Divulgación #3
+                    </div>
+                    <h1 class="big-title">
+                        Cuando la IA <span class="accent-cyan">Programa</span>
+                    </h1>
+                    <p style="font-size: 20px; color: rgba(255,255,255,0.7); line-height: 1.4; font-family: 'Space Grotesk', sans-serif;">
+                        El Rol de las Especificaciones en el Futuro del Desarrollo de Software
+                    </p>
+
+                    <div style="margin-top: 40px; border-left: 3px solid #00FF87; padding-left: 20px;">
+                        <p class="accent-green" style="font-weight: bold; font-family: 'Space Grotesk'; font-size: 15px; text-transform: uppercase;">Evento Oficial</p>
+                        <p style="font-size: 14px; color: #bbb;">1° Jornada de Tecnologías para la Formación y la Investigación</p>
+                        <p style="font-size: 13px; color: rgba(255,255,255,0.4);">Escuela de Ciencias Tecnológicas — UNO</p>
+                    </div>
+                </div>
+
+                <div class="caratula-right">
+                    <div class="logo-uno-container">
+                        <!-- Logo oficial de la Universidad con fallback -->
+                        <img src="logo-blanco-transparencia-06-1536x572.png" alt="Logo Universidad Nacional del Oeste" onerror="this.src='https://uno.edu.ar/images/logo.png'">
+                    </div>
+
+                    <div class="spec-sheet-card">
+                        <div class="spec-item">
+                            <span class="spec-label">Expositor</span>
+                            <span class="spec-val">Maximiliano Rodríguez</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Afiliación</span>
+                            <span class="spec-val">Estudiante Avanzado de Lic. en Informática (UNO) & Dev Sr.</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Fecha & Lugar</span>
+                            <span class="spec-val">Miércoles 20/05/2026 — Sede Córdoba 1055</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: PRESENTACIÓN DEL PROBLEMA -->
+        <div class="slide-container" id="slide2">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>El Punto de Partida</span>
+                <span>Contexto Crítico</span>
+            </div>
+            <h2 class="slide-title">El Problema: La Paradoja de la Velocidad</h2>
+            <div class="content-area">
+                <div class="two-column">
+                    <div>
+                        <p style="font-size: 20px; margin-bottom: 20px;" class="accent-yellow">La Inteligencia Artificial escribe código más rápido de lo que los humanos podemos comprenderlo o auditarlo.</p>
+                        <ul>
+                            <li><span class="accent-cyan">Aceleración Desmedida:</span> Generar software pasó de tomar semanas a tomar segundos. El cuello de botella ya no es la codificación, es el diseño y el análisis.</li>
+                            <li><span class="accent-cyan">La ilusión del código correcto:</span> El código que compila o que "parece que anda" a menudo oculta vulnerabilidades críticas, deudas de arquitectura y parches incoherentes.</li>
+                            <li><span class="accent-cyan">Pérdida de la Intención:</span> Sin un contrato de lo que el sistema *debe* hacer, la IA rellena las lagunas asumiendo lógica de negocio equivocada.</li>
+                        </ul>
+                    </div>
+                    <div class="image-wrapper">
+                        <!-- SVG Integrado nativamente para evitar links rotos -->
+                        <svg width="100%" height="100%" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="300" height="200" rx="10" fill="#0f1319"/>
+                            <circle cx="150" cy="100" r="45" stroke="#00E5FF" stroke-width="2" stroke-dasharray="5 5"/>
+                            <path d="M150 70 L150 100 L170 115" stroke="#FFE600" stroke-width="3" stroke-linecap="round"/>
+                            <rect x="50" y="85" width="40" height="30" rx="5" fill="rgba(0, 255, 135, 0.1)" stroke="#00FF87" stroke-width="2"/>
+                            <text x="70" y="104" fill="#00FF87" font-size="12" font-weight="bold" text-anchor="middle">70%</text>
+                            <path d="M100 100 L115 100" stroke="#00FF87" stroke-width="2" stroke-dasharray="4 2"/>
+                            <path d="M185 100 L200 100" stroke="#ff4757" stroke-width="2" stroke-dasharray="4 2"/>
+                            <rect x="210" y="85" width="40" height="30" rx="5" fill="rgba(255, 71, 87, 0.1)" stroke="#ff4757" stroke-width="2"/>
+                            <text x="230" y="104" fill="#ff4757" font-size="18" font-weight="bold" text-anchor="middle">⚠</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 3: SOBRE MÍ -->
+        <div class="slide-container" id="slide3">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Presentación Profesional</span>
+                <span>Maximiliano Rodríguez</span>
+            </div>
+            <h2 class="slide-title">Sobre mí: Academia, Fintech y Agentes Autónomos</h2>
+            <div class="content-area">
+                <div class="bio-container">
+                    <div class="bio-card">
+                        <div class="bio-role">
+                            <div class="bio-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                            <div>
+                                <h3 class="accent-cyan" style="font-size: 16px;">Licenciatura en Informática</h3>
+                                <p style="font-size: 14px; color: #aaa;">Universidad Nacional del Oeste</p>
+                            </div>
+                        </div>
+                        <div class="bio-role">
+                            <div class="bio-icon"><i class="fa-solid fa-credit-card"></i></div>
+                            <div>
+                                <h3 class="accent-yellow" style="font-size: 16px;">Software Dev Sr @ Naranja X</h3>
+                                <p style="font-size: 14px; color: #aaa;">Sistemas Críticos de Pago & Fintech</p>
+                            </div>
+                        </div>
+                        <div class="bio-role">
+                            <div class="bio-icon"><i class="fa-solid fa-globe"></i></div>
+                            <div>
+                                <h3 class="accent-green" style="font-size: 16px;">Fundador @ Newenar</h3>
+                                <p style="font-size: 14px; color: #aaa;">Agentes Autónomos e Integraciones IA</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p style="font-size: 18px; margin-bottom: 15px;" class="accent-green"><strong>Unir dos mundos: El rigor clásico y el poder generativo.</strong></p>
+                        <p style="font-size: 16px; margin-bottom: 15px;">En mi trabajo diario en el sector Fintech (Naranja X), un error en producción significa fallos financieros sistémicos. Aquí no hay margen para la improvisación ni para "prompts de prueba".</p>
+                        <p style="font-size: 16px;">Por eso, desde mi emprendimiento <strong>newenar.com</strong>, investigo y desarrollo flujos donde la Inteligencia Artificial no actúa como un reemplazo descuidado, sino como un engranaje de precisión guiado por especificaciones estrictas.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>newenar.com</span></div>
+        </div>
+
+        <!-- SLIDE 4: LA IA YA PROGRAMA — ¿Y QUÉ? -->
+        <div class="slide-container" id="slide4">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>La IA en el Desarrollo de Software</span>
+                <span>Estadísticas de Adopción</span>
+            </div>
+            <h2 class="slide-title">La IA ya programa: ¿Qué está pasando hoy?</h2>
+            <div class="content-area">
+                <div class="two-column">
+                    <div>
+                        <div class="highlight-number">70%</div>
+                        <p class="accent-cyan" style="font-size: 22px; font-weight: bold; margin-bottom: 20px; font-family: 'Space Grotesk';">de los equipos ya usa herramientas de IA para codificar (Harness Inc., 2025).</p>
+                        <ul>
+                            <li><strong>Integración total:</strong> Desde asistentes inline hasta agentes autónomos integrados en la consola.</li>
+                            <li><strong>Aceleración de procesos:</strong> El tiempo promedio de escritura de sintaxis estándar se redujo en más de un 50%.</li>
+                            <li><strong>La brecha de ingeniería:</strong> Sin embargo, esta velocidad no vino acompañada de mejores herramientas para validar y estructurar los requisitos del software.</li>
+                        </ul>
+                    </div>
+                    <div class="image-wrapper">
+                        <!-- SVG de Red de Nodos para evitar links rotos -->
+                        <svg width="100%" height="100%" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="300" height="200" rx="10" fill="#0f1319"/>
+                            <circle cx="70" cy="140" r="10" fill="#00FF87"/>
+                            <circle cx="150" cy="70" r="15" fill="#00E5FF"/>
+                            <circle cx="230" cy="140" r="10" fill="#FFE600"/>
+                            <circle cx="70" cy="60" r="8" fill="rgba(255,255,255,0.2)"/>
+                            <circle cx="230" cy="60" r="8" fill="rgba(255,255,255,0.2)"/>
+                            <!-- Conexiones -->
+                            <line x1="70" y1="140" x2="150" y2="70" stroke="#00E5FF" stroke-width="1.5"/>
+                            <line x1="230" y1="140" x2="150" y2="70" stroke="#FFE600" stroke-width="1.5"/>
+                            <line x1="70" y1="60" x2="150" y2="70" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                            <line x1="230" y1="60" x2="150" y2="70" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                            <line x1="70" y1="140" x2="230" y2="140" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="3 3"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 5: ¿QUÉ ES EL VIBE CODING? -->
+        <div class="slide-container" id="slide5">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Fenómenos del Desarrollo Moderno</span>
+                <span>Conceptos de Karpathy (2025)</span>
+            </div>
+            <h2 class="slide-title">¿Qué es el Vibe Coding?</h2>
+            <div class="content-area">
+                <div class="two-column" style="align-items: center; grid-template-columns: 0.95fr 1.05fr;">
+                    <div class="image-wrapper">
+                        <!-- SVG de la analogía de la casa sin planos -->
+                        <svg width="100%" height="100%" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="300" height="200" rx="10" fill="#0f1319"/>
+                            <!-- Blueprint background lines -->
+                            <line x1="20" y1="20" x2="280" y2="20" stroke="rgba(0,229,255,0.1)" stroke-dasharray="2 2"/>
+                            <line x1="20" y1="180" x2="280" y2="180" stroke="rgba(0,229,255,0.1)" stroke-dasharray="2 2"/>
+                            <!-- Casa construida torcida -->
+                            <path d="M60 160 L100 100 L160 110 L200 160 Z" stroke="#FFE600" stroke-width="2" fill="rgba(255, 230, 0, 0.05)"/>
+                            <path d="M100 100 L130 60 L160 110" stroke="#FFE600" stroke-width="2"/>
+                            <!-- Cimientos tambaleándose -->
+                            <circle cx="80" cy="170" r="12" stroke="#ff4757" stroke-width="2" fill="none"/>
+                            <line x1="80" y1="158" x2="80" y2="182" stroke="#ff4757" stroke-width="2"/>
+                            <circle cx="180" cy="170" r="12" stroke="#ff4757" stroke-width="2" fill="none"/>
+                            <line x1="180" y1="158" x2="180" y2="182" stroke="#ff4757" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="accent-yellow" style="font-size: 24px; margin-bottom: 12px;">Programar "a ojo" y por pura vibración</h3>
+                        <p>Término acuñado por Andrej Karpathy (ex-Director de IA de Tesla/OpenAI) en febrero de 2025. Describe el flujo donde el humano no escribe ni comprende a fondo el código.</p>
+                        <div class="tile" style="margin-top: 20px; border-left: 4px solid #FFE600; padding: 15px;">
+                            <p style="font-size: 15px; line-height: 1.4;"><strong>La Analogía:</strong> Es como encargarle a un albañil la construcción de tu casa describiéndosela verbalmente ("quiero dos ventanas acá y un techo alto"). El resultado final puede parecerse a una casa, pero carece de un plano de ingeniería que garantice estabilidad, cañerías seguras o resistencia estructural.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 6: VIBE CODING EN LA PRÁCTICA -->
+        <div class="slide-container" id="slide4_practice">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Flujos de Trabajo Actuales</span>
+                <span>Análisis del Fallo Metodológico</span>
+            </div>
+            <h2 class="slide-title">Cómo se ve el Vibe Coding en la práctica</h2>
+            <div class="content-area">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                    <div class="tile">
+                        <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #FFE600;">1. Prompt Informal</div>
+                        <p style="font-size: 14px; line-height: 1.4;">El programador escribe: <em>"Hacé un script que conecte el endpoint de transacciones y guarde los cobros."</em> Sin declarar condiciones técnicas.</p>
+                    </div>
+                    <div class="tile">
+                        <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #00E5FF;">2. Copiar y Pegar</div>
+                        <p style="font-size: 14px; line-height: 1.4;">La IA produce 200 líneas de código denso. El desarrollador las acepta sin revisarlas de forma profunda porque la consola "no tira error".</p>
+                    </div>
+                    <div class="tile">
+                        <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #00FF87;">3. Ilusión de Éxito</div>
+                        <p style="font-size: 14px; line-height: 1.4;">El flujo básico "funciona" a primera vista en el entorno local de pruebas. Se siente una alta velocidad y se avanza hacia la siguiente tarea.</p>
+                    </div>
+                    <div class="tile">
+                        <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px; color: #ff4757;">4. El Bug Oculto</div>
+                        <p style="font-size: 14px; line-height: 1.4;">En producción, el sistema falla ante condiciones complejas, expone datos críticos o resulta imposible de modificar por otros programadores.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 7: CONSECUENCIAS REALES -->
+        <div class="slide-container" id="slide5_metrics">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Métricas e Impacto Real</span>
+                <span>Análisis de Wiz Research & Harness</span>
+            </div>
+            <h2 class="slide-title">Las consecuencias reales en la industria</h2>
+            <div class="content-area">
+                <div class="two-column" style="grid-template-columns: 1fr 1fr; gap: 40px;">
+                    <div>
+                        <div class="bar-chart">
+                            <div class="bar-row">
+                                <div class="bar-label">Exposición de Riesgo</div>
+                                <div class="bar-outer"><div class="bar-inner" data-width="20%"></div></div>
+                            </div>
+                            <p style="font-size: 14px; margin-left: 220px;" class="accent-yellow">1 de cada 5 empresas (Wiz Research, 2025)</p>
+
+                            <div class="bar-row" style="margin-top: 20px;">
+                                <div class="bar-label">Demora de Revisión</div>
+                                <div class="bar-outer"><div class="bar-inner" data-width="40%"></div></div>
+                            </div>
+                            <p style="font-size: 14px; margin-left: 220px;" class="accent-cyan">+40% de tiempo en corrección (Harness, 2025)</p>
+                        </div>
+                    </div>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.05); padding-left: 30px;">
+                        <ul style="margin-top: 10px;">
+                            <li><span class="accent-yellow">Vulnerabilidad Sistémica:</span> Pérdida de validación de entradas, credenciales quemadas en el código y configuraciones inseguras de autenticación.</li>
+                            <li><span class="accent-cyan">Deuda Técnica Infinita:</span> Los equipos pasan más tiempo resolviendo las regresiones lógicas de la IA que el que ahorraron al generar el código inicial.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 8: LA RAÍZ DEL PROBLEMA -->
+        <div class="slide-container" id="slide6_root">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Fundamentos Académicos</span>
+                <span>Ingeniería de Requisitos</span>
+            </div>
+            <h2 class="slide-title">La raíz del problema: Ausencia de especificaciones</h2>
+            <div class="content-area">
+                <div class="quote-layout">
+                    <div class="quote-text">"La calidad del software depende en gran parte de la calidad de sus procesos de requisitos."</div>
+                    <div class="quote-author">— Hadad, Doorn y Leite (2025)</div>
+                </div>
+                <div style="max-width: 900px; margin: 30px auto 0; text-align: center;">
+                    <p style="font-size: 19px; line-height: 1.6;">Cuando le pedimos a una IA que programe sin proveerle especificaciones explícitas, la forzamos a <strong>adivinar</strong>. La IA es una increíble ejecutora, pero carece de intuición lógica para entender lo que no fue documentado. El caos no es culpa de la IA, es del proceso.</p>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 9: ¿QUÉ ES SPEC-DRIVEN DEVELOPMENT (SDD)? -->
+        <div class="slide-container" id="slide7_sdd">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Propuesta Metodológica</span>
+                <span>Spec-Driven Development</span>
+            </div>
+            <h2 class="slide-title">¿Qué es Spec-Driven Development (SDD)?</h2>
+            <div class="content-area">
+                <div style="text-align: center; max-width: 950px; margin: 0 auto 30px;">
+                    <p style="font-size: 20px;">Una metodología que vuelve a colocar a la <strong>especificación</strong> en el centro absoluto del desarrollo. No como documentación estática, sino como un <strong>contrato técnico interactivo</strong> que guía a humanos e IAs.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <div class="tile">
+                        <i class="fa-solid fa-file-contract"></i>
+                        <h3>Design by Contract</h3>
+                        <p style="font-size: 14px;">Inspirado en Bertrand Meyer (1992): definir precondiciones y postcondiciones rigurosas.</p>
+                    </div>
+                    <div class="tile">
+                        <i class="fa-solid fa-vial"></i>
+                        <h3>TDD / BDD</h3>
+                        <p style="font-size: 14px;">Los criterios de prueba y de aceptación son prioritarios y se formulan antes de tirar líneas de código.</p>
+                    </div>
+                    <div class="tile">
+                        <i class="fa-solid fa-robot"></i>
+                        <h3>Contexto para Agentes</h3>
+                        <p style="font-size: 14px;">Adapta estos principios para que los modelos generativos entiendan las reglas sin ambigüedades.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 10: TRES NIVELES DE SDD -->
+        <div class="slide-container" id="slide8_levels">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Taxonomía de Implementación</span>
+                <span>Böckeler (2025)</span>
+            </div>
+            <h2 class="slide-title">Los tres niveles de adopción de SDD</h2>
+            <div class="content-area">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="font-family: 'Space Grotesk';">Nivel</th>
+                        <th style="font-family: 'Space Grotesk';">Dinámica de Trabajo</th>
+                        <th style="font-family: 'Space Grotesk';">Impacto con Agentes de IA</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="accent-yellow" style="font-weight: bold; font-family: 'Space Grotesk';">Spec-first</td>
+                        <td>La especificación se escribe de manera anticipada y se usa de guía manual.</td>
+                        <td>Sirve de prompt estructurado para generación puntual.</td>
+                    </tr>
+                    <tr>
+                        <td class="accent-cyan" style="font-weight: bold; font-family: 'Space Grotesk';">Spec-anchored</td>
+                        <td>La especificación vive en el repositorio y se mantiene al día con cada cambio.</td>
+                        <td>La IA la consulta continuamente como "fuente de verdad" del contexto.</td>
+                    </tr>
+                    <tr>
+                        <td class="accent-green" style="font-weight: bold; font-family: 'Space Grotesk';">Spec-as-source</td>
+                        <td>La especificación es el código real. El código del software se compila desde ella.</td>
+                        <td>Máximo potencial: los agentes regeneran el software completo si cambia la especificación.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 11: OPEN SPEC -->
+        <div class="slide-container" id="slide9_openspec">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Casos Prácticos</span>
+                <span>OpenSpec (Fission AI)</span>
+            </div>
+            <h2 class="slide-title">OpenSpec: Pasar de la teoría al código</h2>
+            <div class="content-area">
+                <div class="two-column">
+                    <div>
+                        <p style="font-size: 19px; margin-bottom: 20px;">Una herramienta de código abierto diseñada para estructurar la comunicación técnica con agentes autónomos.</p>
+                        <ul>
+                            <li><span class="accent-cyan">Alcance Estructurado:</span> Redacta los límites del cambio, supuestos de diseño, arquitectura e interfaces comprometidas.</li>
+                            <li><span class="accent-green">Soporte Nativo:</span> Compatible con flujos modernos de codificación como <strong>Claude Code, Cursor y GitHub Copilot</strong>.</li>
+                        </ul>
+                    </div>
+                    <div class="image-wrapper">
+                        <!-- SVG del Dashboard OpenSpec para evitar links rotos -->
+                        <svg width="100%" height="100%" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="300" height="200" rx="10" fill="#0f1319"/>
+                            <!-- Menu lateral -->
+                            <rect x="15" y="20" width="60" height="160" rx="5" fill="#090a0f"/>
+                            <rect x="25" y="40" width="40" height="8" rx="2" fill="#00E5FF"/>
+                            <rect x="25" y="60" width="40" height="6" rx="2" fill="rgba(255,255,255,0.2)"/>
+                            <rect x="25" y="75" width="40" height="6" rx="2" fill="rgba(255,255,255,0.2)"/>
+                            <!-- Consola principal -->
+                            <rect x="85" y="20" width="200" height="160" rx="5" fill="#050508" stroke="rgba(0, 255, 135, 0.2)"/>
+                            <text x="100" y="45" fill="#00FF87" font-family="monospace" font-size="10">openspec --init project</text>
+                            <text x="100" y="65" fill="#ffffff" font-family="monospace" font-size="9">> Generando requisitos de diseño...</text>
+                            <text x="100" y="80" fill="#00E5FF" font-family="monospace" font-size="9">> Criterios de seguridad aprobados.</text>
+                            <!-- Barra de progreso -->
+                            <rect x="100" y="140" width="170" height="10" rx="5" fill="#1a1a1a"/>
+                            <rect x="100" y="140" width="120" height="10" rx="5" fill="#00FF87"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 12: EL CICLO OPERATIVO -->
+        <div class="slide-container" id="slide10_cycle">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Metodología de Desarrollo</span>
+                <span>Ciclo de Vida SDD</span>
+            </div>
+            <h2 class="slide-title">El Ciclo: Specify–Plan–Task–Implement</h2>
+            <div class="content-area">
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot">1</div>
+                        <h3 class="accent-green">Specify</h3>
+                        <p style="font-size: 13px;">Definir la intención técnica, limitando qué se va a cambiar y qué reglas aplican.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot" style="border-color: #00E5FF; color: #00E5FF;">2</div>
+                        <h3 class="accent-cyan">Plan</h3>
+                        <p style="font-size: 13px;">La IA analiza la especificación y propone decisiones de diseño y dependencias.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot" style="border-color: #FFE600; color: #FFE600;">3</div>
+                        <h3 class="accent-yellow">Task</h3>
+                        <p style="font-size: 13px;">El plan se desglosa en tareas modulares, independientes y auditables.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot">4</div>
+                        <h3 class="accent-green">Implement</h3>
+                        <p style="font-size: 13px;">Los agentes de IA construyen el código con anclaje directo en el plan de origen.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px; text-align: center; border: 1px dashed rgba(0,229,255,0.3); padding: 12px 24px; border-radius: 8px; background: rgba(0, 229, 255, 0.02);">
+                    <p style="font-size: 15px;">🚀 <strong>El Valor Crítico:</strong> Existe una <span class="accent-yellow">revisión humana sistemática</span> entre planificar y ejecutar. No se codifica a ciegas.</p>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 13: IMPACTO EN CALIDAD -->
+        <div class="slide-container" id="slide11_quality">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Resultados Metodológicos</span>
+                <span>Ventajas de SDD</span>
+            </div>
+            <h2 class="slide-title">Impacto directo en la calidad del software</h2>
+            <div class="content-area">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="tile">
+                        <div class="bio-icon" style="margin-bottom: 10px;"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h3>Seguridad Robusta</h3>
+                        <p style="font-size: 14px;">Cuando los parámetros de cifrado o validación forman parte del contrato de especificación, la IA reduce drásticamente la inyección de vulnerabilidades.</p>
+                    </div>
+                    <div class="tile">
+                        <div class="bio-icon" style="margin-bottom: 10px; color: #00FF87; background: rgba(0, 255, 135, 0.08);"><i class="fa-solid fa-bolt"></i></div>
+                        <h3>Revisión Ágil</h3>
+                        <p style="font-size: 14px;">La revisión de código se agiliza un 40% debido a que los verificadores ya saben exactamente qué intención debían cumplir las funciones generadas.</p>
+                    </div>
+                    <div class="tile">
+                        <div class="bio-icon" style="margin-bottom: 10px; color: #FFE600; background: rgba(255, 230, 0, 0.08);"><i class="fa-solid fa-database"></i></div>
+                        <h3>Memoria Colectiva</h3>
+                        <p style="font-size: 14px;">La especificación compartida sirve como punto de reenganche lógico para equipos distribuidos, permitiendo alternar desarrolladores de forma sencilla.</p>
+                    </div>
+                    <div class="tile">
+                        <div class="bio-icon" style="margin-bottom: 10px;"><i class="fa-solid fa-magnifying-glass"></i></div>
+                        <h3>Trazabilidad Completa</h3>
+                        <p style="font-size: 14px;">Tanto los artefactos generados como las pruebas de integración quedan vinculados unívocamente a los requisitos de diseño iniciales.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer"><span>Expositor: Maximiliano Rodríguez</span><span>Universidad Nacional del Oeste</span></div>
+        </div>
+
+        <!-- SLIDE 14: EL ROL SE TRANSFORMA -->
+        <div class="slide-container" id="slide12_role" style="padding: 0;">
+            <div class="tech-grid"></div>
+            <div class="caratula">
+                <div class="caratula-left" style="padding: 60px 40px 60px 80px;">
+                    <h2 class="slide-title" style="margin-top: 0;">El rol del desarrollador se transforma</h2>
+                    <p style="font-size: 19px; margin-bottom: 20px;">La IA no reemplaza al programador; redefine radicalmente su espectro de trabajo diario.</p>
+                    <ul>
+                        <li>Pasamos de escribir líneas de sintaxis repetitivas a convertirnos en <span class="accent-yellow">Arquitectos de Intención</span>.</li>
+                        <li>Nuestra tarea ya no es simplemente tipear código, sino diseñar especificaciones rigurosas y verificables que la IA pueda ejecutar sin fallos.</li>
+                        <li>El pensamiento lógico abstracto, la modelación de procesos y el criterio de seguridad se vuelven los factores más valiosos de nuestra profesión.</li>
+                    </ul>
+                </div>
+                <div class="caratula-right" style="padding: 0;">
+                    <!-- SVG abstracto del desarrollador del futuro -->
+                    <svg width="100%" height="100%" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="300" height="400" fill="#090a0f"/>
+                        <circle cx="150" cy="180" r="70" stroke="#00FF87" stroke-width="2" stroke-dasharray="5 5"/>
+                        <circle cx="150" cy="180" r="50" stroke="#00E5FF" stroke-width="1.5"/>
+                        <!-- Head silhouette styled -->
+                        <path d="M120 280 C120 230, 180 230, 180 280 Z" fill="rgba(0, 229, 255, 0.1)" stroke="#00E5FF" stroke-width="2"/>
+                        <circle cx="150" cy="220" r="20" fill="rgba(0, 255, 135, 0.1)" stroke="#00FF87" stroke-width="2"/>
+                        <!-- Grid lines -->
+                        <line x1="150" y1="50" x2="150" y2="350" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                        <line x1="50" y1="180" x2="250" y2="180" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="footer" style="left: 80px; width: auto; right: 52%;"><span>Expositor: Maximiliano Rodríguez</span><span>UNO</span></div>
+        </div>
+
+        <!-- SLIDE 15: REFLEXIÓN FINAL -->
+        <div class="slide-container" id="slide13_reflection" style="background: radial-gradient(circle at center, rgba(0, 229, 255, 0.1) 0%, #050505 80%); justify-content: center; align-items: center;">
+            <div class="tech-grid"></div>
+            <div class="content-area qa-layout">
+                <h2 style="font-size: 42px; margin-bottom: 25px; color: #FFE600; font-family: 'Space Grotesk';">Reflexión Final</h2>
+                <div class="quote-text" style="color: #ffffff; border: none; font-size: 34px;">
+                    "El futuro del desarrollo de software no es <span class="accent-green">menos código humano</span>.<br>Es más intención humana, <span class="accent-cyan">mejor especificada</span>."
+                </div>
+                <p style="font-size: 19px; margin-top: 25px; max-width: 800px; color: #aaa;">La Inteligencia Artificial no dejará de programar de ahora en adelante. Nuestra única alternativa para conservar el control del software es profesionalizar la manera en que la instruimos.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: CONTACTO Y REFERENCIAS -->
+        <div class="slide-container" id="slide14_references">
+            <div class="tech-grid"></div>
+            <div class="header">
+                <span>Conclusión y Consultas</span>
+                <span>Contacto</span>
+            </div>
+            <div class="content-area qa-layout" style="margin-top: 60px;">
+                <h2 style="font-size: 56px; color: #00FF87; font-family: 'Space Grotesk'; font-weight: 700;">¡Muchas Gracias!</h2>
+                <p style="font-size: 20px; margin-top: 10px; color: #fff;">¿Preguntas / Debate?</p>
+
+                <div style="margin: 25px 0; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; width: 60%;">
+                    <p class="accent-cyan" style="font-weight: bold; font-family: 'Space Grotesk'; font-size: 19px;">Maximiliano Rodríguez</p>
+                    <p style="font-size: 15px; color: rgba(255,255,255,0.6);">maxi.rodriguez.3105@gmail.com</p>
+                    <p style="font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 5px;">Licenciatura en Informática — Universidad Nacional del Oeste</p>
+                    <p style="font-size: 14px; color: #00FF87; font-family: 'Space Grotesk'; margin-top: 8px;"><strong>newenar.com</strong></p>
+                </div>
+
+                <div style="text-align: left; background: rgba(255, 255, 255, 0.02); padding: 12px 20px; border-radius: 8px; width: 90%; border: 1px solid rgba(255,255,255,0.05);">
+                    <p style="font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.4;">
+                        <strong>Referencias bibliográficas de la investigación:</strong><br>
+                        [1] Harness Inc. (2025) State of AI in Software Engineering. <br>
+                        [2] Ge, Y., et al. (2025) A Survey of Vibe Coding with Large Language Models. arXiv:2510.12399. <br>
+                        [3] Fission AI (2025) OpenSpec Framework. openspec.dev. <br>
+                        [4] Wiz Research (2025) Common Security Risks in Vibe-Coded Apps. <br>
+                        [5] Hadad, G. D. S., Doorn, J. H., y Prado Leite, J. C. (2025) Gestión de Requisitos.
+                    </p>
+                </div>
+            </div>
+            <div class="footer"><span>1° Jornada de Tecnologías - ECT - UNO</span><span>Merlo, 2026</span></div>
+        </div>
+
+        <!-- BARRA DE CONTROLES INTERACTIVOS -->
+        <div id="controls">
+            <button class="nav-btn" id="prev-slide" title="Anterior (Flecha Izquierda)">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span id="slide-indicator">1 / 16</span>
+            <button class="nav-btn" id="next-slide" title="Siguiente (Flecha Derecha / Espacio)">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const viewport = document.getElementById("presentation-viewport");
+        const scaler = document.getElementById("presentation-scaler");
+        const slides = document.querySelectorAll(".slide-container");
+        const totalSlides = slides.length;
+        let currentSlideIndex = 0;
+
+        const prevBtn = document.getElementById("prev-slide");
+        const nextBtn = document.getElementById("next-slide");
+        const indicator = document.getElementById("slide-indicator");
+
+        // Función de Auto-escalado dinámico
+        function handleResize() {
+            const targetWidth = 1280;
+            const targetHeight = 720;
+
+            const containerWidth = scaler.clientWidth;
+            const containerHeight = scaler.clientHeight;
+
+            const scaleX = containerWidth / targetWidth;
+            const scaleY = containerHeight / targetHeight;
+
+            let scale = Math.min(scaleX, scaleY);
+
+            // Margen de seguridad para no recortar bordes de control
+            scale = scale * 0.96;
+
+            viewport.style.transform = `scale(${scale})`;
+        }
+
+        function updateSlides() {
+            slides.forEach((slide, index) => {
+                if (index === currentSlideIndex) {
+                    slide.classList.add("active");
+
+                    // Disparar las animaciones de las barras estadísticas cuando la slide es visible
+                    const bars = slide.querySelectorAll(".bar-inner");
+                    bars.forEach(bar => {
+                        const targetWidth = bar.getAttribute("data-width");
+                        setTimeout(() => {
+                            bar.style.width = targetWidth;
+                        }, 100);
+                    });
+                } else {
+                    slide.classList.remove("active");
+                }
+            });
+
+            // Actualizar indicador
+            indicator.textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < totalSlides - 1) {
+                currentSlideIndex++;
+                updateSlides();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSlides();
+            }
+        }
+
+        // Asignación de clics
+        nextBtn.addEventListener("click", nextSlide);
+        prevBtn.addEventListener("click", prevSlide);
+
+        // Control por teclado
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "ArrowRight" || e.key === " ") {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Escuchar redimensiones
+        window.addEventListener('resize', handleResize);
+
+        // Carga inicial
+        handleResize();
+        updateSlides();
+
+        // Timeout de cortesía para re-calcular tras render
+        setTimeout(handleResize, 300);
+    });
+</script>
+
+</body>
+</html>

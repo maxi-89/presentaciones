@@ -1,0 +1,865 @@
+---
+description: Backend development standards, best practices, and conventions for NestJS TypeScript applications on Node.js 24 with tsc, DynamoDB, and Domain-Driven Design.
+globs: ["src/**/*.ts", "test/**/*.ts", "jest.config.ts", "tsconfig.json", "package.json", "nest-cli.json"]
+alwaysApply: true
+---
+
+# Backend Standards — NestJS · TypeScript · Node.js 24
+
+## Table of Contents
+
+- [Technology Stack](#technology-stack)
+- [Architecture Overview](#architecture-overview)
+- [Project Structure](#project-structure)
+- [NestJS Module Organization](#nestjs-module-organization)
+- [Application Bootstrap](#application-bootstrap)
+- [Controllers](#controllers)
+- [Services (Application Layer)](#services-application-layer)
+- [Domain Layer](#domain-layer)
+- [DTOs and Validation](#dtos-and-validation)
+- [Exception Handling](#exception-handling)
+- [Configuration](#configuration)
+- [Infrastructure Layer](#infrastructure-layer)
+- [DynamoDB Patterns](#dynamodb-patterns)
+- [Testing Standards](#testing-standards)
+- [TypeScript Standards](#typescript-standards)
+- [Build Configuration](#build-configuration)
+- [Git Workflow](#git-workflow)
+
+---
+
+## Technology Stack
+
+| Concern | Technology |
+|---|---|
+| Runtime | Node.js 24.x |
+| Language | TypeScript (strict mode) |
+| Framework | NestJS v10+ |
+| Build | tsc (via `nest build`) |
+| HTTP Adapter | Express |
+| Database | AWS DynamoDB |
+| Validation | class-validator + class-transformer |
+| Testing | Jest + @nestjs/testing |
+| Linting | ESLint + Prettier |
+
+---
+
+## Architecture Overview
+
+The backend follows a **modular DDD architecture** with NestJS:
+
+```
+src/
+├── modules/          # Feature modules (controller, service, DTOs per feature)
+├── domain/           # Domain entities, value objects, repository interfaces
+├── infrastructure/   # DynamoDB repositories, external adapters, AWS SDK clients
+├── common/           # Shared filters, guards, interceptors, pipes, decorators
+└── config/           # Configuration module and typed config schema
+```
+
+**Dependency rule**: outer layers depend on inner layers. Domain has zero dependencies on infrastructure or NestJS.
+
+```
+controllers → services → domain ← repositories
+```
+
+---
+
+## Project Structure
+
+```
+project-name/
+├── src/
+│   ├── modules/
+│   │   └── foo/
+│   │       ├── dto/
+│   │       │   ├── create-foo.dto.ts
+│   │       │   └── foo-response.dto.ts
+│   │       ├── foo.controller.ts
+│   │       ├── foo.controller.spec.ts
+│   │       ├── foo.service.ts
+│   │       ├── foo.service.spec.ts
+│   │       └── foo.module.ts
+│   ├── domain/
+│   │   ├── models/              # Foo.ts (entity / value object)
+│   │   └── repositories/        # IFooRepository.ts (interface + injection token)
+│   ├── infrastructure/
+│   │   └── dynamodb/
+│   │       ├── dynamodb.provider.ts
+│   │       └── foo.repository.ts
+│   ├── common/
+│   │   ├── filters/             # http-exception.filter.ts
+│   │   ├── guards/              # auth.guard.ts
+│   │   └── interceptors/        # logging.interceptor.ts
+│   ├── config/
+│   │   └── configuration.ts
+│   ├── app.module.ts
+│   └── main.ts
+├── test/
+│   ├── unit/
+│   │   └── modules/foo/
+│   └── e2e/
+│       └── foo.e2e-spec.ts
+├── nest-cli.json
+├── tsconfig.json
+├── tsconfig.build.json
+├── jest.config.ts
+├── .env.example
+└── package.json
+```
+
+---
+
+## NestJS Module Organization
+
+Each feature is encapsulated in a **NestJS module**. Modules are the primary unit of organization.
+
+```typescript
+// src/modules/foo/foo.module.ts
+import { Module } from '@nestjs/common';
+import { FooController } from './foo.controller';
+import { FooService } from './foo.service';
+import { FooRepository } from '../../infrastructure/dynamodb/foo.repository';
+import { FOO_REPOSITORY } from '../../domain/repositories/IFooRepository';
+
+@Module({
+  controllers: [FooController],
+  providers: [
+    FooService,
+    { provide: FOO_REPOSITORY, useClass: FooRepository },
+  ],
+})
+export class FooModule {}
+```
+
+```typescript
+// src/app.module.ts
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { FooModule } from './modules/foo/foo.module';
+import configuration from './config/configuration';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
+    FooModule,
+  ],
+})
+export class AppModule {}
+```
+
+---
+
+## Application Bootstrap
+
+```typescript
+// src/main.ts
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  const port = process.env['PORT'] ?? 3000;
+  await app.listen(port);
+}
+
+bootstrap();
+```
+
+**Rules:**
+- Always enable `ValidationPipe` globally with `whitelist: true` and `transform: true`
+- Always register the global exception filter
+- Use `forbidNonWhitelisted: true` to reject unknown properties in request bodies
+- Read `PORT` from environment; never hardcode
+
+---
+
+## Controllers
+
+Controllers are **thin entry points**. Their only responsibilities:
+1. Declare routes and HTTP methods via decorators
+2. Extract and coerce request data using pipes
+3. Delegate to services
+4. Return typed response DTOs
+
+```typescript
+// src/modules/foo/foo.controller.ts
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { FooService } from './foo.service';
+import { CreateFooDto } from './dto/create-foo.dto';
+import { FooResponseDto } from './dto/foo-response.dto';
+
+@Controller('foos')
+export class FooController {
+  constructor(private readonly fooService: FooService) {}
+
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() dto: CreateFooDto): Promise<FooResponseDto> {
+    return this.fooService.create(dto);
+  }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<FooResponseDto> {
+    return this.fooService.findById(id);
+  }
+}
+```
+
+**Rules:**
+- No business logic in controllers
+- Use NestJS built-in pipes (`ParseUUIDPipe`, `ParseIntPipe`) for parameter coercion
+- Explicitly declare return types
+- Use `@HttpCode` to set non-default status codes (e.g. 201, 204)
+
+---
+
+## Services (Application Layer)
+
+Services orchestrate domain logic via constructor injection. They are the boundary between presentation and domain.
+
+```typescript
+// src/modules/foo/foo.service.ts
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
+import { IFooRepository, FOO_REPOSITORY } from '../../domain/repositories/IFooRepository';
+import { Foo } from '../../domain/models/Foo';
+import { CreateFooDto } from './dto/create-foo.dto';
+import { FooResponseDto } from './dto/foo-response.dto';
+
+@Injectable()
+export class FooService {
+  constructor(
+    @Inject(FOO_REPOSITORY) private readonly fooRepository: IFooRepository,
+  ) {}
+
+  async create(dto: CreateFooDto): Promise<FooResponseDto> {
+    const foo = new Foo({
+      id: uuidv4(),
+      name: dto.name,
+      createdAt: new Date().toISOString(),
+    });
+
+    await this.fooRepository.save(foo);
+
+    return { id: foo.id, name: foo.name, createdAt: foo.createdAt };
+  }
+
+  async findById(id: string): Promise<FooResponseDto> {
+    const foo = await this.fooRepository.findById(id);
+
+    if (!foo) {
+      throw new NotFoundException(`Foo with id ${id} not found`);
+    }
+
+    return { id: foo.id, name: foo.name, createdAt: foo.createdAt };
+  }
+}
+```
+
+**Rules:**
+- Always use constructor injection; use `@Inject(TOKEN)` for interface-bound dependencies
+- Use NestJS built-in HTTP exceptions (`NotFoundException`, `BadRequestException`, `ConflictException`) — never throw raw `Error`
+- Services must not import HTTP decorators, `@Controller`, or AWS SDK directly
+- Return typed response DTOs from service methods — never expose domain entities
+
+---
+
+## Domain Layer
+
+Domain entities are **framework-agnostic** — no NestJS, no AWS SDK, no DynamoDB.
+
+```typescript
+// src/domain/models/Foo.ts
+export class Foo {
+  readonly id: string;
+  readonly name: string;
+  readonly createdAt: string;
+
+  constructor(props: { id: string; name: string; createdAt: string }) {
+    if (!props.name || props.name.trim().length === 0) {
+      throw new Error('name is required');
+    }
+    this.id = props.id;
+    this.name = props.name.trim();
+    this.createdAt = props.createdAt;
+  }
+}
+```
+
+### Repository Interfaces with Injection Tokens
+
+Always co-locate the `Symbol` injection token with the interface:
+
+```typescript
+// src/domain/repositories/IFooRepository.ts
+import { Foo } from '../models/Foo';
+
+export const FOO_REPOSITORY = Symbol('IFooRepository');
+
+export interface IFooRepository {
+  save(foo: Foo): Promise<void>;
+  findById(id: string): Promise<Foo | null>;
+  findAll(): Promise<Foo[]>;
+}
+```
+
+### Value Objects
+
+```typescript
+export class Email {
+  readonly value: string;
+
+  constructor(raw: string) {
+    const normalized = raw.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+      throw new Error('Invalid email address');
+    }
+    this.value = normalized;
+  }
+}
+```
+
+**Rules:**
+- Domain entities and value objects have zero NestJS or AWS imports
+- Always define an injection token (`Symbol`) alongside repository interfaces
+- Use classes for entities with behavior or invariants; use interfaces for pure data shapes
+
+---
+
+## DTOs and Validation
+
+DTOs use `class-validator` decorators. The global `ValidationPipe` handles transformation and validation automatically.
+
+```typescript
+// src/modules/foo/dto/create-foo.dto.ts
+import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
+
+export class CreateFooDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name!: string;
+}
+```
+
+```typescript
+// src/modules/foo/dto/foo-response.dto.ts
+export class FooResponseDto {
+  id!: string;
+  name!: string;
+  createdAt!: string;
+}
+```
+
+**Rules:**
+- DTOs must be **classes** (not interfaces) so `class-transformer` can instantiate them
+- Use `class-validator` decorators for all input DTO properties
+- Separate request DTOs (`CreateFooDto`) from response DTOs (`FooResponseDto`)
+- Never return domain entities directly — always map to a response DTO
+
+---
+
+## Exception Handling
+
+### Global Exception Filter
+
+```typescript
+// src/common/filters/http-exception.filter.ts
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
+import type { Request, Response } from 'express';
+
+@Catch()
+export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
+  catch(exception: unknown, host: ArgumentsHost): void {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const message =
+      exception instanceof HttpException
+        ? exception.message
+        : 'Internal server error';
+
+    if (status >= 500) {
+      this.logger.error(`${request.method} ${request.url}`, exception);
+    }
+
+    response.status(status).json({ error: message });
+  }
+}
+```
+
+### HTTP Status Code Mapping
+
+| Situation | NestJS Exception | Status |
+|---|---|---|
+| Invalid input | `BadRequestException` | 400 |
+| Unauthorized | `UnauthorizedException` | 401 |
+| Forbidden | `ForbiddenException` | 403 |
+| Not found | `NotFoundException` | 404 |
+| Conflict | `ConflictException` | 409 |
+| Unhandled | (filter catches) | 500 |
+
+**Rules:**
+- Always throw NestJS `HttpException` subclasses from services — never raw `Error`
+- Let the global filter handle all error serialization
+- All error responses follow the shape: `{ "error": "Human-readable message" }`
+
+---
+
+## Configuration
+
+```typescript
+// src/config/configuration.ts
+export default () => ({
+  port: parseInt(process.env['PORT'] ?? '3000', 10),
+  dynamodb: {
+    tableName: process.env['DYNAMODB_TABLE'] ?? '',
+    region: process.env['AWS_REGION'] ?? 'us-east-1',
+    endpoint: process.env['DYNAMODB_ENDPOINT'],
+  },
+});
+```
+
+```typescript
+// Usage in a provider or repository
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class SomeRepository {
+  private readonly tableName: string;
+
+  constructor(private readonly config: ConfigService) {
+    this.tableName = this.config.getOrThrow<string>('dynamodb.tableName');
+  }
+}
+```
+
+**Rules:**
+- Always use `ConfigModule` + `ConfigService` — never access `process.env` directly inside services or repositories
+- Use `getOrThrow` to fail fast on missing required configuration at startup
+- Use bracket notation (`process.env['KEY']`) to satisfy `noPropertyAccessFromIndexSignature`
+
+---
+
+## Infrastructure Layer
+
+### DynamoDB Client Provider
+
+```typescript
+// src/infrastructure/dynamodb/dynamodb.provider.ts
+import type { Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+
+export const DYNAMODB_CLIENT = Symbol('DynamoDBDocumentClient');
+
+export const DynamodbProvider: Provider = {
+  provide: DYNAMODB_CLIENT,
+  inject: [ConfigService],
+  useFactory: (config: ConfigService): DynamoDBDocumentClient => {
+    const endpoint = config.get<string>('dynamodb.endpoint');
+    const client = new DynamoDBClient({
+      region: config.get<string>('dynamodb.region'),
+      ...(endpoint && {
+        endpoint,
+        credentials: { accessKeyId: 'local', secretAccessKey: 'local' },
+      }),
+    });
+    return DynamoDBDocumentClient.from(client);
+  },
+};
+```
+
+### Repository Implementation
+
+```typescript
+// src/infrastructure/dynamodb/foo.repository.ts
+import { Injectable, Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { IFooRepository } from '../../domain/repositories/IFooRepository';
+import { Foo } from '../../domain/models/Foo';
+import { DYNAMODB_CLIENT } from './dynamodb.provider';
+
+@Injectable()
+export class FooRepository implements IFooRepository {
+  private readonly tableName: string;
+
+  constructor(
+    @Inject(DYNAMODB_CLIENT) private readonly client: DynamoDBDocumentClient,
+    config: ConfigService,
+  ) {
+    this.tableName = config.getOrThrow<string>('dynamodb.tableName');
+  }
+
+  async save(foo: Foo): Promise<void> {
+    await this.client.send(
+      new PutCommand({
+        TableName: this.tableName,
+        Item: {
+          PK: `FOO#${foo.id}`,
+          SK: `FOO#${foo.id}`,
+          id: foo.id,
+          name: foo.name,
+          createdAt: foo.createdAt,
+          entityType: 'FOO',
+        },
+      }),
+    );
+  }
+
+  async findById(id: string): Promise<Foo | null> {
+    const result = await this.client.send(
+      new GetCommand({
+        TableName: this.tableName,
+        Key: { PK: `FOO#${id}`, SK: `FOO#${id}` },
+      }),
+    );
+
+    if (!result.Item) return null;
+
+    return new Foo({
+      id: result.Item['id'] as string,
+      name: result.Item['name'] as string,
+      createdAt: result.Item['createdAt'] as string,
+    });
+  }
+
+  async findAll(): Promise<Foo[]> {
+    return [];
+  }
+}
+```
+
+---
+
+## DynamoDB Patterns
+
+### Single-Table Design
+
+All entities share one table. Use composite keys to separate entity types:
+
+| Entity | PK | SK |
+|---|---|---|
+| User | `USER#<id>` | `USER#<id>` |
+| Order | `ORDER#<id>` | `ORDER#<id>` |
+| Order by User | `USER#<userId>` | `ORDER#<orderId>` |
+
+Always include an `entityType` attribute for filtering.
+
+### Key Rules
+
+- Use `PK` and `SK` as partition and sort key attribute names
+- Prefix keys with entity type in uppercase (`USER#`, `ORDER#`)
+- Add a GSI when you need to query by a non-primary attribute
+- Never hardcode table names — always read from `ConfigService`
+- Always use AWS SDK v3 (`@aws-sdk/client-dynamodb` + `@aws-sdk/lib-dynamodb`)
+- Use `DynamoDBDocumentClient` to work with plain JavaScript objects
+
+---
+
+## Testing Standards
+
+### Coverage Threshold
+
+Minimum 90% for branches, functions, lines, and statements.
+
+### Structure
+
+```
+test/
+├── unit/
+│   └── modules/
+│       └── foo/
+│           ├── foo.service.spec.ts
+│           └── foo.controller.spec.ts
+└── e2e/
+    └── foo.e2e-spec.ts
+```
+
+### Service Unit Test Pattern
+
+Use `@nestjs/testing` to create isolated testing modules:
+
+```typescript
+// test/unit/modules/foo/foo.service.spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
+import { FooService } from '../../../../src/modules/foo/foo.service';
+import { IFooRepository, FOO_REPOSITORY } from '../../../../src/domain/repositories/IFooRepository';
+
+const mockFooRepository: jest.Mocked<IFooRepository> = {
+  save: jest.fn(),
+  findById: jest.fn(),
+  findAll: jest.fn(),
+};
+
+describe('FooService', () => {
+  let service: FooService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        FooService,
+        { provide: FOO_REPOSITORY, useValue: mockFooRepository },
+      ],
+    }).compile();
+
+    service = module.get<FooService>(FooService);
+    jest.clearAllMocks();
+  });
+
+  describe('create', () => {
+    it('saves a new Foo and returns its id', async () => {
+      // Arrange
+      mockFooRepository.save.mockResolvedValue(undefined);
+
+      // Act
+      const result = await service.create({ name: 'Test' });
+
+      // Assert
+      expect(result.id).toBeDefined();
+      expect(mockFooRepository.save).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findById', () => {
+    it('throws NotFoundException when Foo does not exist', async () => {
+      mockFooRepository.findById.mockResolvedValue(null);
+
+      await expect(service.findById('nonexistent-id')).rejects.toThrow(NotFoundException);
+    });
+  });
+});
+```
+
+### Controller Unit Test Pattern
+
+```typescript
+// test/unit/modules/foo/foo.controller.spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { FooController } from '../../../../src/modules/foo/foo.controller';
+import { FooService } from '../../../../src/modules/foo/foo.service';
+
+const mockFooService = {
+  create: jest.fn(),
+  findById: jest.fn(),
+};
+
+describe('FooController', () => {
+  let controller: FooController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [FooController],
+      providers: [{ provide: FooService, useValue: mockFooService }],
+    }).compile();
+
+    controller = module.get<FooController>(FooController);
+    jest.clearAllMocks();
+  });
+
+  describe('create', () => {
+    it('delegates to FooService.create and returns the result', async () => {
+      const dto = { name: 'Test' };
+      const expected = { id: 'abc', name: 'Test', createdAt: '2026-01-01T00:00:00.000Z' };
+      mockFooService.create.mockResolvedValue(expected);
+
+      const result = await controller.create(dto);
+
+      expect(result).toEqual(expected);
+      expect(mockFooService.create).toHaveBeenCalledWith(dto);
+    });
+  });
+});
+```
+
+### E2E Test Pattern
+
+```typescript
+// test/e2e/foo.e2e-spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../../src/app.module';
+
+describe('FooController (e2e)', () => {
+  let app: INestApplication;
+
+  beforeAll(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = module.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('POST /foos — returns 201 on valid input', () => {
+    return request(app.getHttpServer())
+      .post('/foos')
+      .send({ name: 'Test' })
+      .expect(201)
+      .expect((res) => {
+        expect((res.body as { id: string }).id).toBeDefined();
+      });
+  });
+
+  it('POST /foos — returns 400 on invalid input', () => {
+    return request(app.getHttpServer()).post('/foos').send({ name: '' }).expect(400);
+  });
+});
+```
+
+**Rules:**
+- Use `@nestjs/testing` for all unit and e2e tests — never instantiate classes manually
+- Follow **AAA (Arrange, Act, Assert)** in unit tests
+- Always `jest.clearAllMocks()` in `beforeEach`
+- E2E tests must mirror the global pipes and filters configured in `main.ts`
+
+---
+
+## TypeScript Standards
+
+- Use `strict: true` in `tsconfig.json`
+- Enable `experimentalDecorators: true` and `emitDecoratorMetadata: true` (required by NestJS)
+- No `any` — use `unknown` and narrow types explicitly
+- Prefer `interface` for object shapes, `type` for unions and primitives
+- All function parameters and return types must be explicitly typed
+- Use `as const` for literal types and enums
+- Never use non-null assertion (`!`) unless the value is guaranteed by contract
+- Use bracket notation for `process.env` access: `process.env['KEY']`
+
+---
+
+## Build Configuration
+
+### tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+```
+
+### tsconfig.build.json
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "test", "dist", "**/*.spec.ts", "**/*.e2e-spec.ts"]
+}
+```
+
+### nest-cli.json
+
+```json
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "builder": "tsc",
+    "tsConfigPath": "tsconfig.build.json"
+  }
+}
+```
+
+### package.json scripts
+
+```json
+{
+  "scripts": {
+    "build": "nest build",
+    "start": "node dist/main",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:e2e": "jest --config jest-e2e.config.ts"
+  }
+}
+```
+
+**Rules:**
+- Always build with `tsc` via `nest build` — never use `ts-node` in production
+- Never commit `dist/` to version control
+- Target `ES2022` to leverage Node.js 24 native features (structured clone, `Array.at`, etc.)
+
+---
+
+## Git Workflow
+
+- Branch naming: `feature/<ticket-id>-short-description`, `fix/<ticket-id>-short-description`
+- Commit message format: `<type>(<scope>): <description>` (Conventional Commits)
+  - Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+  - Example: `feat(foos): add POST /foos endpoint`
+- One feature per branch, small focused commits
+- Always update `openspec/specs/api-spec.yml` when endpoints change
+- Always update `openspec/specs/data-model.md` when DynamoDB schema changes
