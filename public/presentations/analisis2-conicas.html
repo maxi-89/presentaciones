@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Matemático 2 — Cónicas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --ink:#1a2238;
+    --accent:#c2410c;
+    --accent2:#0f766e;
+    --line:#dcd6c8;
+    --paper:#fbf9f3;
+    --card:#ffffff;
+    --head:#1a2238;
+    --muted:#6b6456;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Spline Sans',sans-serif;
+    padding:16px 20px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:1120px;margin:0 auto;}
+
+  header.title{
+    border-bottom:2.5px solid var(--ink);
+    padding-bottom:7px;margin-bottom:12px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  }
+  header.title h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;font-size:22px;letter-spacing:-.5px;line-height:1;
+  }
+  header.title .sub{
+    font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;
+    padding-bottom:2px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+  }
+
+  .card{
+    break-inside:avoid;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 1px 0 rgba(26,34,56,.04);
+  }
+  .card > h2{
+    font-family:'Spline Sans',sans-serif;
+    font-size:10.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+    color:#fff;background:var(--head);
+    padding:5px 10px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .card.acc > h2{background:var(--accent);}
+  .card.acc2 > h2{background:var(--accent2);}
+  .card .body{padding:7px 10px 9px;}
+
+  /* card interior: fórmulas a la izquierda, SVG a la derecha */
+  .ci{display:flex;gap:8px;align-items:flex-start;}
+  .ci .fml{flex:1;min-width:0;}
+  .ci svg{flex-shrink:0;display:block;}
+
+  .lbl{
+    font-size:10px;font-weight:600;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.6px;
+    margin:5px 0 1px;
+  }
+  .card.acc2 .lbl{color:var(--accent2);}
+  .lbl:first-child{margin-top:0;}
+  .note{font-size:10px;color:var(--muted);font-style:italic;margin-top:2px;line-height:1.3;}
+  .eq{margin:2px 0;text-align:center;}
+  .katex{font-size:.97em;}
+  .katex-display{margin:3px 0;}
+
+  /* mini-tabla para parábola orientaciones */
+  .ptable{width:100%;border-collapse:collapse;margin-top:4px;}
+  .ptable td{padding:2px 4px;font-size:10.5px;vertical-align:middle;border-bottom:1px solid rgba(220,214,200,.4);}
+  .ptable td:first-child{font-weight:600;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;}
+  .ptable tr:last-child td{border-bottom:none;}
+
+  /* mini-SVG container para parábola */
+  .para-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+  .para-item{text-align:center;}
+  .para-item .plbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
+  /* ecuación general */
+  .disc-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;}
+  .disc-table thead th{
+    font-size:9.5px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;
+    color:var(--muted);padding:2px 6px;border-bottom:1px solid var(--line);text-align:left;
+  }
+  .disc-table tbody td{padding:3px 6px;border-bottom:1px solid rgba(220,214,200,.4);vertical-align:middle;}
+  .disc-table tbody tr:last-child td{border-bottom:none;}
+  .disc-table tbody td:first-child{font-weight:600;}
+
+  /* datos fila inline */
+  .drow{display:flex;gap:12px;flex-wrap:wrap;margin-top:3px;}
+  .drow .dp{font-size:10.5px;}
+  .drow .dp span{color:var(--muted);font-size:9.5px;margin-right:2px;text-transform:uppercase;letter-spacing:.4px;}
+
+  footer{
+    margin-top:8px;text-align:center;font-size:10px;color:var(--muted);
+    border-top:1px solid var(--line);padding-top:7px;
+  }
+
+  @media print{
+    @page{size:A4 landscape;margin:6mm;}
+    html{font-size:80%;}
+    body{background:#fff;padding:0;}
+    .sheet{max-width:100%;}
+    header.title{margin-bottom:6px;padding-bottom:4px;}
+    header.title h1{font-size:17px;}
+    .grid{gap:6px;}
+    .card{box-shadow:none;}
+    .card > h2{padding:3px 8px;}
+    .card .body{padding:4px 7px 5px;}
+    .ci{gap:5px;}
+    .ci svg{transform-origin:top right;}
+    .lbl{margin:3px 0 1px;font-size:9px;}
+    .lbl:first-child{margin-top:0;}
+    .eq{margin:1px 0;}
+    .katex-display{margin:1px 0 !important;}
+    .note{font-size:8.5px;line-height:1.2;margin-top:1px;}
+    .drow{gap:8px;margin-top:2px;}
+    .drow .dp{font-size:9.5px;}
+    .para-grid{gap:4px;margin-top:3px;}
+    .para-item .plbl{font-size:8px;}
+    .disc-table{font-size:10px;}
+    .disc-table thead th{font-size:8.5px;padding:2px 5px;}
+    .disc-table tbody td{padding:2px 5px;}
+    footer{margin-top:4px;padding-top:5px;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="title">
+    <div>
+      <h1>Análisis Matemático 2</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.3px;">Universidad Nacional del Oeste</div>
+    </div>
+    <span class="sub">Cónicas</span>
+  </header>
+
+  <div class="grid">
+
+    <!-- ── CIRCUNFERENCIA ── -->
+    <section class="card acc">
+      <h2>Circunferencia</h2>
+      <div class="body">
+        <div class="ci">
+          <div class="fml">
+            <div class="lbl">Canónica · C:(0,0)</div>
+            <div class="eq">$$x^2+y^2=R^2$$</div>
+            <div class="lbl">Ordinaria · C:(h,k)</div>
+            <div class="eq">$$(x-h)^2+(y-k)^2=R^2$$</div>
+            <div class="lbl">Casos según R</div>
+            <div class="note" style="font-style:normal;font-size:10.5px;">
+              $R>0$ → circunferencia &nbsp;·&nbsp; $R=0$ → punto &nbsp;·&nbsp; $R<0$ → $\emptyset$
+            </div>
+            <div class="lbl">Centro desde Ec. General</div>
+            <div class="eq">$$C=\!\left(-\tfrac{D}{2},-\tfrac{E}{2}\right),\quad r^2=\tfrac{D^2}{4}+\tfrac{E^2}{4}-F$$</div>
+          </div>
+          <!-- SVG circunferencia -->
+          <svg viewBox="-48 -48 96 96" width="88" height="88">
+            <line x1="-44" y1="0" x2="44" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+            <line x1="0" y1="-44" x2="0" y2="44" stroke="#dcd6c8" stroke-width="1"/>
+            <circle cx="0" cy="0" r="30" fill="rgba(194,65,12,.08)" stroke="#c2410c" stroke-width="2"/>
+            <!-- radio -->
+            <line x1="0" y1="0" x2="21" y2="-21" stroke="#6b6456" stroke-width="0.9" stroke-dasharray="3,2"/>
+            <text x="12" y="-10" font-size="9" fill="#6b6456" font-family="serif" font-style="italic">r</text>
+            <!-- centro -->
+            <circle cx="0" cy="0" r="2.5" fill="#1a2238"/>
+            <text x="3" y="-3" font-size="8" fill="#1a2238" font-family="serif" font-style="italic">(h,k)</text>
+            <!-- arrowheads -->
+            <polygon points="44,0 40,-3 40,3" fill="#dcd6c8"/>
+            <polygon points="0,-44 -3,-40 3,-40" fill="#dcd6c8"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ELIPSE EJE X ── -->
+    <section class="card acc2">
+      <h2>Elipse — eje x &nbsp;<span style="font-weight:400;font-size:9px;letter-spacing:.5px;">(a > b > 0)</span></h2>
+      <div class="body">
+        <div class="ci">
+          <div class="fml">
+            <div class="lbl">Canónica</div>
+            <div class="eq">$$\frac{x^2}{a^2}+\frac{y^2}{b^2}=1$$</div>
+            <div class="lbl">Ordinaria · C:(h,k)</div>
+            <div class="eq">$$\frac{(x-h)^2}{a^2}+\frac{(y-k)^2}{b^2}=1$$</div>
+            <div class="drow">
+              <div class="dp"><span>Vért. H</span>$(h\pm a,k)$</div>
+              <div class="dp"><span>Vért. V</span>$(h,k\pm b)$</div>
+            </div>
+            <div class="drow">
+              <div class="dp"><span>Focos</span>$(h\pm c,k)$</div>
+              <div class="dp"><span>c²</span>$a^2-b^2$</div>
+            </div>
+            <div class="drow">
+              <div class="dp"><span>e</span>$c/a < 1$</div>
+              <div class="dp"><span>LR</span>$2b^2/a$</div>
+            </div>
+            <div class="note" style="margin-top:3px;">a = semieje mayor · b = semieje menor · c = semifocal</div>
+          </div>
+          <!-- SVG elipse horizontal -->
+          <svg viewBox="-50 -38 100 76" width="90" height="72">
+            <line x1="-47" y1="0" x2="47" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+            <line x1="0" y1="-35" x2="0" y2="35" stroke="#dcd6c8" stroke-width="1"/>
+            <ellipse cx="0" cy="0" rx="38" ry="22" fill="rgba(15,118,110,.07)" stroke="#0f766e" stroke-width="2"/>
+            <!-- focos -->
+            <circle cx="-24" cy="0" r="2.5" fill="#c2410c"/>
+            <circle cx="24" cy="0" r="2.5" fill="#c2410c"/>
+            <!-- centro -->
+            <circle cx="0" cy="0" r="2" fill="#1a2238"/>
+            <!-- etiquetas -->
+            <text x="40" y="-3" font-size="8" fill="#0f766e" font-family="serif" font-style="italic">a</text>
+            <text x="2" y="-24" font-size="8" fill="#0f766e" font-family="serif" font-style="italic">b</text>
+            <text x="-22" y="10" font-size="7.5" fill="#c2410c" font-family="serif">F</text>
+            <text x="21" y="10" font-size="7.5" fill="#c2410c" font-family="serif">F</text>
+            <polygon points="47,0 43,-3 43,3" fill="#dcd6c8"/>
+            <polygon points="0,-35 -3,-31 3,-31" fill="#dcd6c8"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ELIPSE EJE Y ── -->
+    <section class="card acc2">
+      <h2>Elipse — eje y &nbsp;<span style="font-weight:400;font-size:9px;letter-spacing:.5px;">(a > b > 0)</span></h2>
+      <div class="body">
+        <div class="ci">
+          <div class="fml">
+            <div class="lbl">Canónica</div>
+            <div class="eq">$$\frac{x^2}{b^2}+\frac{y^2}{a^2}=1$$</div>
+            <div class="lbl">Ordinaria · C:(h,k)</div>
+            <div class="eq">$$\frac{(x-h)^2}{b^2}+\frac{(y-k)^2}{a^2}=1$$</div>
+            <div class="drow">
+              <div class="dp"><span>Vért. H</span>$(h\pm b,k)$</div>
+              <div class="dp"><span>Vért. V</span>$(h,k\pm a)$</div>
+            </div>
+            <div class="drow">
+              <div class="dp"><span>Focos</span>$(h,k\pm c)$</div>
+              <div class="dp"><span>c²</span>$a^2-b^2$</div>
+            </div>
+            <div class="drow">
+              <div class="dp"><span>e</span>$c/a < 1$</div>
+              <div class="dp"><span>LR</span>$2b^2/a$</div>
+            </div>
+            <div class="note" style="margin-top:3px;">Focos sobre el eje vertical.</div>
+          </div>
+          <!-- SVG elipse vertical -->
+          <svg viewBox="-50 -42 100 84" width="78" height="78">
+            <line x1="-46" y1="0" x2="46" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+            <line x1="0" y1="-39" x2="0" y2="39" stroke="#dcd6c8" stroke-width="1"/>
+            <ellipse cx="0" cy="0" rx="22" ry="36" fill="rgba(15,118,110,.07)" stroke="#0f766e" stroke-width="2"/>
+            <!-- focos -->
+            <circle cx="0" cy="-22" r="2.5" fill="#c2410c"/>
+            <circle cx="0" cy="22" r="2.5" fill="#c2410c"/>
+            <!-- centro -->
+            <circle cx="0" cy="0" r="2" fill="#1a2238"/>
+            <!-- etiquetas -->
+            <text x="24" y="-3" font-size="8" fill="#0f766e" font-family="serif" font-style="italic">b</text>
+            <text x="3" y="-37" font-size="8" fill="#0f766e" font-family="serif" font-style="italic">a</text>
+            <text x="4" y="-20" font-size="7.5" fill="#c2410c" font-family="serif">F</text>
+            <text x="4" y="26" font-size="7.5" fill="#c2410c" font-family="serif">F</text>
+            <polygon points="46,0 42,-3 42,3" fill="#dcd6c8"/>
+            <polygon points="0,-39 -3,-35 3,-35" fill="#dcd6c8"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── HIPÉRBOLA EJE X ── -->
+    <section class="card acc">
+      <h2>Hipérbola — eje x</h2>
+      <div class="body">
+        <div class="ci">
+          <div class="fml">
+            <div class="lbl">Canónica</div>
+            <div class="eq">$$\frac{x^2}{a^2}-\frac{y^2}{b^2}=1$$</div>
+            <div class="lbl">Ordinaria · C:(h,k)</div>
+            <div class="eq">$$\frac{(x-h)^2}{a^2}-\frac{(y-k)^2}{b^2}=1$$</div>
+            <div class="drow">
+              <div class="dp"><span>Vértices</span>$(h\pm a,k)$</div>
+              <div class="dp"><span>Focos</span>$(h\pm c,k)$</div>
+            </div>
+            <div class="drow">
+              <div class="dp"><span>c²</span>$a^2+b^2$</div>
+              <div class="dp"><span>e</span>$c/a > 1$</div>
+              <div class="dp"><span>LR</span>$2b^2/a$</div>
+            </div>
+            <div class="lbl">Asíntotas</div>
+            <div class="eq">$$y=\pm\frac{b}{a}(x-h)+k$$</div>
+          </div>
+          <!-- SVG hipérbola horizontal -->
+          <svg viewBox="-50 -42 100 84" width="88" height="78">
+            <line x1="-47" y1="0" x2="47" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+            <line x1="0" y1="-39" x2="0" y2="39" stroke="#dcd6c8" stroke-width="1"/>
+            <!-- asíntotas -->
+            <line x1="-44" y1="-33" x2="44" y2="33" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="-44" y1="33" x2="44" y2="-33" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+            <!-- rama derecha -->
+            <path d="M 18,-39 Q 46,0 18,39" fill="none" stroke="#c2410c" stroke-width="2"/>
+            <!-- rama izquierda -->
+            <path d="M -18,-39 Q -46,0 -18,39" fill="none" stroke="#c2410c" stroke-width="2"/>
+            <!-- vértices -->
+            <circle cx="18" cy="0" r="2.5" fill="#c2410c"/>
+            <circle cx="-18" cy="0" r="2.5" fill="#c2410c"/>
+            <!-- focos -->
+            <circle cx="33" cy="0" r="2" fill="#1a2238"/>
+            <circle cx="-33" cy="0" r="2" fill="#1a2238"/>
+            <text x="34" y="-4" font-size="7.5" fill="#1a2238" font-family="serif">F</text>
+            <text x="-40" y="-4" font-size="7.5" fill="#1a2238" font-family="serif">F</text>
+            <polygon points="47,0 43,-3 43,3" fill="#dcd6c8"/>
+            <polygon points="0,-39 -3,-35 3,-35" fill="#dcd6c8"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── HIPÉRBOLA EJE Y ── -->
+    <section class="card acc">
+      <h2>Hipérbola — eje y</h2>
+      <div class="body">
+        <div class="ci">
+          <div class="fml">
+            <div class="lbl">Canónica</div>
+            <div class="eq">$$\frac{y^2}{a^2}-\frac{x^2}{b^2}=1$$</div>
+            <div class="lbl">Ordinaria · C:(h,k)</div>
+            <div class="eq">$$\frac{(y-k)^2}{a^2}-\frac{(x-h)^2}{b^2}=1$$</div>
+            <div class="drow">
+              <div class="dp"><span>Vértices</span>$(h,k\pm a)$</div>
+              <div class="dp"><span>Focos</span>$(h,k\pm c)$</div>
+            </div>
+            <div class="drow">
+              <div class="dp"><span>c²</span>$a^2+b^2$</div>
+              <div class="dp"><span>e</span>$c/a > 1$</div>
+              <div class="dp"><span>LR</span>$2b^2/a$</div>
+            </div>
+            <div class="lbl">Asíntotas</div>
+            <div class="eq">$$y=\pm\frac{a}{b}(x-h)+k$$</div>
+          </div>
+          <!-- SVG hipérbola vertical -->
+          <svg viewBox="-50 -42 100 84" width="82" height="78">
+            <line x1="-47" y1="0" x2="47" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+            <line x1="0" y1="-39" x2="0" y2="39" stroke="#dcd6c8" stroke-width="1"/>
+            <!-- asíntotas -->
+            <line x1="-44" y1="-33" x2="44" y2="33" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+            <line x1="-44" y1="33" x2="44" y2="-33" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+            <!-- rama superior -->
+            <path d="M -39,-18 Q 0,-46 39,-18" fill="none" stroke="#c2410c" stroke-width="2"/>
+            <!-- rama inferior -->
+            <path d="M -39,18 Q 0,46 39,18" fill="none" stroke="#c2410c" stroke-width="2"/>
+            <!-- vértices -->
+            <circle cx="0" cy="-18" r="2.5" fill="#c2410c"/>
+            <circle cx="0" cy="18" r="2.5" fill="#c2410c"/>
+            <!-- focos -->
+            <circle cx="0" cy="-32" r="2" fill="#1a2238"/>
+            <circle cx="0" cy="32" r="2" fill="#1a2238"/>
+            <text x="4" y="-29" font-size="7.5" fill="#1a2238" font-family="serif">F</text>
+            <text x="4" y="36" font-size="7.5" fill="#1a2238" font-family="serif">F</text>
+            <polygon points="47,0 43,-3 43,3" fill="#dcd6c8"/>
+            <polygon points="0,-39 -3,-35 3,-35" fill="#dcd6c8"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PARÁBOLA ── -->
+    <section class="card">
+      <h2>Parábola &nbsp;<span style="font-weight:400;font-size:9px;letter-spacing:.5px;">e = 1 · LR = 2p</span></h2>
+      <div class="body">
+        <!-- mini diagramas 2x2 -->
+        <div class="para-grid">
+
+          <div class="para-item">
+            <svg viewBox="-38 -36 76 72" width="72" height="68">
+              <line x1="-35" y1="0" x2="35" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+              <line x1="0" y1="-33" x2="0" y2="33" stroke="#dcd6c8" stroke-width="1"/>
+              <!-- directriz -->
+              <line x1="-13" y1="-33" x2="-13" y2="33" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+              <path d="M -12,-30 Q 35,0 -12,30" fill="none" stroke="#1a2238" stroke-width="2"/>
+              <!-- foco -->
+              <circle cx="13" cy="0" r="2.5" fill="#c2410c"/>
+              <text x="15" y="-3" font-size="7" fill="#c2410c" font-family="serif">F</text>
+              <text x="-12" y="-25" font-size="7" fill="#6b6456" font-family="serif" text-anchor="middle">d</text>
+            </svg>
+            <div class="plbl">Derecha · $y^2=2p(x-h)$</div>
+            <div style="font-size:9.5px;text-align:center;margin-top:2px;">Foco $(h+\tfrac{p}{2},k)$ · Dir. $x=h-\tfrac{p}{2}$</div>
+          </div>
+
+          <div class="para-item">
+            <svg viewBox="-38 -36 76 72" width="72" height="68">
+              <line x1="-35" y1="0" x2="35" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+              <line x1="0" y1="-33" x2="0" y2="33" stroke="#dcd6c8" stroke-width="1"/>
+              <!-- directriz -->
+              <line x1="13" y1="-33" x2="13" y2="33" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+              <path d="M 12,-30 Q -35,0 12,30" fill="none" stroke="#1a2238" stroke-width="2"/>
+              <!-- foco -->
+              <circle cx="-13" cy="0" r="2.5" fill="#c2410c"/>
+              <text x="-24" y="-3" font-size="7" fill="#c2410c" font-family="serif">F</text>
+              <text x="13" y="-25" font-size="7" fill="#6b6456" font-family="serif" text-anchor="middle">d</text>
+            </svg>
+            <div class="plbl">Izquierda · $y^2=-2p(x-h)$</div>
+            <div style="font-size:9.5px;text-align:center;margin-top:2px;">Foco $(h-\tfrac{p}{2},k)$ · Dir. $x=h+\tfrac{p}{2}$</div>
+          </div>
+
+          <div class="para-item">
+            <svg viewBox="-38 -36 76 72" width="72" height="68">
+              <line x1="-35" y1="0" x2="35" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+              <line x1="0" y1="-33" x2="0" y2="33" stroke="#dcd6c8" stroke-width="1"/>
+              <!-- directriz -->
+              <line x1="-35" y1="13" x2="35" y2="13" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+              <path d="M -30,12 Q 0,-35 30,12" fill="none" stroke="#1a2238" stroke-width="2"/>
+              <!-- foco -->
+              <circle cx="0" cy="-13" r="2.5" fill="#c2410c"/>
+              <text x="4" y="-13" font-size="7" fill="#c2410c" font-family="serif">F</text>
+              <text x="27" y="12" font-size="7" fill="#6b6456" font-family="serif">d</text>
+            </svg>
+            <div class="plbl">Arriba · $x^2=2p(y-k)$</div>
+            <div style="font-size:9.5px;text-align:center;margin-top:2px;">Foco $(h,k+\tfrac{p}{2})$ · Dir. $y=k-\tfrac{p}{2}$</div>
+          </div>
+
+          <div class="para-item">
+            <svg viewBox="-38 -36 76 72" width="72" height="68">
+              <line x1="-35" y1="0" x2="35" y2="0" stroke="#dcd6c8" stroke-width="1"/>
+              <line x1="0" y1="-33" x2="0" y2="33" stroke="#dcd6c8" stroke-width="1"/>
+              <!-- directriz -->
+              <line x1="-35" y1="-13" x2="35" y2="-13" stroke="#dcd6c8" stroke-width="1" stroke-dasharray="3,2"/>
+              <path d="M -30,-12 Q 0,35 30,-12" fill="none" stroke="#1a2238" stroke-width="2"/>
+              <!-- foco -->
+              <circle cx="0" cy="13" r="2.5" fill="#c2410c"/>
+              <text x="4" y="22" font-size="7" fill="#c2410c" font-family="serif">F</text>
+              <text x="27" y="-11" font-size="7" fill="#6b6456" font-family="serif">d</text>
+            </svg>
+            <div class="plbl">Abajo · $x^2=-2p(y-k)$</div>
+            <div style="font-size:9.5px;text-align:center;margin-top:2px;">Foco $(h,k-\tfrac{p}{2})$ · Dir. $y=k+\tfrac{p}{2}$</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ECUACIÓN GENERAL ── (span 3) -->
+    <section class="card acc2" style="grid-column:span 3;">
+      <h2>Ecuación General de las Cónicas &nbsp;·&nbsp; $Ax^2+Bxy+Cy^2+Dx+Ey+F=0$</h2>
+      <div class="body">
+        <div style="display:flex;gap:16px;align-items:flex-start;">
+          <table class="disc-table" style="flex:1;">
+            <thead>
+              <tr>
+                <th>Cónica</th>
+                <th>Condición sobre A y C</th>
+                <th>Discriminante $B^2-4AC$</th>
+                <th>Nota</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Circunferencia</td>
+                <td>$A=C$ &nbsp;·&nbsp; $B=0$</td>
+                <td>$B^2-4AC < 0$</td>
+                <td>Coeficientes de $x^2$ e $y^2$ iguales</td>
+              </tr>
+              <tr>
+                <td>Elipse</td>
+                <td>$A$ y $C$ mismo signo</td>
+                <td>$B^2-4AC < 0$</td>
+                <td>$A\neq C$</td>
+              </tr>
+              <tr>
+                <td>Parábola</td>
+                <td>$A=0$ o $C=0$</td>
+                <td>$B^2-4AC = 0$</td>
+                <td>Un solo cuadrado presente</td>
+              </tr>
+              <tr>
+                <td>Hipérbola</td>
+                <td>$A$ y $C$ distinto signo</td>
+                <td>$B^2-4AC > 0$</td>
+                <td>Término $xy$ da rotación si $B\neq 0$</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="flex-shrink:0;display:flex;flex-direction:column;gap:4px;justify-content:center;padding-top:4px;">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600;">Tip · sin término xy</div>
+            <div style="font-size:11px;">Si $B=0$: completar el cuadrado en $x$ e $y$</div>
+            <div style="font-size:11px;">para obtener la forma ordinaria.</div>
+            <div style="margin-top:4px;font-size:10px;color:var(--muted);">$c^2=a^2-b^2$ (elipse) &nbsp;·&nbsp; $c^2=a^2+b^2$ (hipérbola)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    Hoja de Fórmulas · Análisis Matemático 2 — Universidad Nacional del Oeste &nbsp;·&nbsp;
+    Maximiliano Rodriguez &nbsp;·&nbsp;
+    <a href="https://www.linkedin.com/in/rodriguez-maxi" target="_blank" style="color:var(--muted);text-decoration:underline;">linkedin.com/in/rodriguez-maxi</a>
+  </footer>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</body>
+</html>

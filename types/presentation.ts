@@ -8,4 +8,5 @@ export interface Presentation {
   tags: string[];
   htmlPath: string;
   thumbnailPath?: string;
+  format?: 'slides' | 'document';
 }

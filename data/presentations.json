@@ -9,5 +9,45 @@
     "tags": ["ai", "software-engineering"],
     "htmlPath": "presentations/cuando-la-ia-programa.html",
     "thumbnailPath": "thumbnails/cuando-la-ia-programa.png"
+  },
+  {
+    "id": "2",
+    "slug": "calculo-multivariable-formulas",
+    "title": "Análisis Matemático 2 — Hoja de Fórmulas",
+    "description": "Referencia rápida de límites, continuidad, derivadas parciales, gradiente, plano tangente y funciones vectoriales. Universidad Nacional del Oeste.",
+    "date": "2026-05-20",
+    "tags": ["math", "calculus", "reference"],
+    "htmlPath": "presentations/calculo-multivariable-formulas.html",
+    "format": "document"
+  },
+  {
+    "id": "3",
+    "slug": "analisis2-tablas",
+    "title": "Análisis Matemático 2 — Tablas de Derivadas e Integrales",
+    "description": "Tabla completa de 20 derivadas, 20 integrales básicas y reglas de derivación (suma, producto, cociente, cadena). Formato apaisado A4. Universidad Nacional del Oeste.",
+    "date": "2026-05-20",
+    "tags": ["math", "calculus", "reference"],
+    "htmlPath": "presentations/analisis2-tablas.html",
+    "format": "document"
+  },
+  {
+    "id": "5",
+    "slug": "analisis2-conicas",
+    "title": "Análisis Matemático 2 — Cónicas",
+    "description": "Circunferencia, elipse, hipérbola y parábola (4 orientaciones): ecuaciones canónicas y ordinarias, vértices, focos, directriz, excentricidad, lado recto, asíntotas y ecuación general con discriminante. Con diagramas SVG. Universidad Nacional del Oeste.",
+    "date": "2026-05-20",
+    "tags": ["math", "calculus", "reference"],
+    "htmlPath": "presentations/analisis2-conicas.html",
+    "format": "document"
+  },
+  {
+    "id": "4",
+    "slug": "analisis2-complemento",
+    "title": "Análisis Matemático 2 — Complemento",
+    "description": "Propiedades de logaritmos, raíz y e; fórmulas algebraicas; integración por partes (LIATE); ecuaciones diferenciales (separable, lineal, exacta, homogénea); cónicas; movimiento en el espacio. Universidad Nacional del Oeste.",
+    "date": "2026-05-20",
+    "tags": ["math", "calculus", "reference"],
+    "htmlPath": "presentations/analisis2-complemento.html",
+    "format": "document"
   }
 ]

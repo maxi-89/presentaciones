@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análisis Matemático 2 — Tablas de Derivadas e Integrales</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --ink:#1a2238;
+    --accent:#c2410c;
+    --accent2:#0f766e;
+    --line:#dcd6c8;
+    --paper:#fbf9f3;
+    --card:#ffffff;
+    --head:#1a2238;
+    --muted:#6b6456;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Spline Sans',sans-serif;
+    padding:18px 22px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:1120px;margin:0 auto;}
+
+  header.title{
+    border-bottom:2.5px solid var(--ink);
+    padding-bottom:7px;margin-bottom:12px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  }
+  header.title h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;font-size:22px;letter-spacing:-.5px;line-height:1;
+  }
+  header.title .sub{
+    font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;
+    padding-bottom:2px;
+  }
+
+  /* Franja de reglas */
+  .rules-strip{
+    display:grid;
+    grid-template-columns:1fr 0.65fr 1fr 1fr 1.8fr;
+    gap:8px;
+    margin-bottom:12px;
+  }
+
+  /* Dos columnas principales */
+  .cols{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+
+  .card{
+    break-inside:avoid;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 1px 0 rgba(26,34,56,.04);
+  }
+  .card > h2{
+    font-family:'Spline Sans',sans-serif;
+    font-size:10.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+    color:#fff;background:var(--head);
+    padding:5px 10px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .card.acc > h2{background:var(--accent);}
+  .card.acc2 > h2{background:var(--accent2);}
+  .card .body{padding:6px 10px 8px;}
+
+  /* Tabla de derivadas / integrales */
+  table.ftable{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11.5px;
+  }
+  table.ftable thead tr{
+    background:var(--paper);
+  }
+  table.ftable thead th{
+    font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--muted);
+    padding:3px 6px;
+    border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  table.ftable thead th:first-child{text-align:left;width:20px;}
+  table.ftable tbody tr:nth-child(even){background:rgba(220,214,200,.18);}
+  table.ftable tbody td{
+    padding:3px 6px;
+    vertical-align:middle;
+    text-align:center;
+    border-bottom:1px solid rgba(220,214,200,.5);
+  }
+  table.ftable tbody td:first-child{
+    color:var(--muted);font-size:10px;font-weight:600;
+    text-align:left;
+  }
+  .katex{font-size:.98em;}
+  .katex-display{margin:2px 0;}
+
+  /* regla card */
+  .rule-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:6px 10px 7px;
+    text-align:center;
+  }
+  .rule-card .rlbl{
+    font-size:9.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--muted);margin-bottom:3px;
+  }
+
+  .lbl{
+    font-size:10px;font-weight:600;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.6px;
+    margin:6px 0 2px;
+  }
+  .lbl:first-child{margin-top:0;}
+  .note{font-size:10px;color:var(--muted);font-style:italic;margin-top:2px;line-height:1.3;}
+  .eq{margin:2px 0;text-align:center;}
+
+  footer{
+    margin-top:8px;text-align:center;font-size:10px;color:var(--muted);
+    border-top:1px solid var(--line);padding-top:7px;
+  }
+
+  @media print{
+    @page{size:A4 landscape;margin:6mm;}
+    html{font-size:82%;}
+    body{background:#fff;padding:0;}
+    .sheet{max-width:100%;}
+    header.title{margin-bottom:6px;padding-bottom:4px;}
+    header.title h1{font-size:17px;}
+    .rules-strip{gap:5px;margin-bottom:7px;}
+    .rule-card{padding:4px 7px 5px;}
+    .rule-card .rlbl{margin-bottom:1px;}
+    .cols{gap:8px;}
+    .card,.rule-card{box-shadow:none;}
+    .card > h2{padding:3px 8px;}
+    .card .body{padding:3px 6px 5px;}
+    .ftable thead th{padding:2px 5px;}
+    .ftable tbody td{padding:2px 5px;}
+    .katex{font-size:0.9em;}
+    footer{margin-top:5px;padding-top:5px;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="title">
+    <div>
+      <h1>Análisis Matemático 2</h1>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:.3px;">Universidad Nacional del Oeste</div>
+    </div>
+    <span class="sub">Tablas de Derivadas e Integrales</span>
+  </header>
+
+  <!-- REGLAS DE DERIVACIÓN -->
+  <div class="rules-strip">
+    <div class="rule-card">
+      <div class="rlbl">Suma / Resta</div>
+      <div class="eq">$(f\pm g)'=f'\pm g'$</div>
+    </div>
+    <div class="rule-card">
+      <div class="rlbl">Constante</div>
+      <div class="eq">$(k\cdot f)'=k\cdot f'$</div>
+    </div>
+    <div class="rule-card">
+      <div class="rlbl">Producto</div>
+      <div class="eq">$(f\cdot g)'=f'g+fg'$</div>
+    </div>
+    <div class="rule-card">
+      <div class="rlbl">Cociente</div>
+      <div class="eq">$\left(\tfrac{f}{g}\right)'=\tfrac{f'g-fg'}{g^2}$</div>
+    </div>
+    <div class="rule-card">
+      <div class="rlbl">Cadena</div>
+      <div class="eq" style="white-space:nowrap;">$[f(g(x))]'=f'(g(x))\cdot g'(x)$</div>
+    </div>
+  </div>
+
+  <div class="cols">
+
+    <!-- TABLA DE DERIVADAS -->
+    <section class="card acc">
+      <h2>Tabla de Derivadas</h2>
+      <div class="body">
+        <table class="ftable">
+          <thead>
+            <tr><th>#</th><th>$f(x)$</th><th>$f'(x)$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>$k$</td><td>$0$</td></tr>
+            <tr><td>2</td><td>$x$</td><td>$1$</td></tr>
+            <tr><td>3</td><td>$k\cdot x$</td><td>$k$</td></tr>
+            <tr><td>4</td><td>$x^n$</td><td>$n\cdot x^{n-1}$</td></tr>
+            <tr><td>5</td><td>$\tfrac{1}{x}$</td><td>$-\tfrac{1}{x^2}$</td></tr>
+            <tr><td>6</td><td>$\sqrt{x}$</td><td>$\tfrac{1}{2\sqrt{x}}$</td></tr>
+            <tr><td>7</td><td>$\ln x$</td><td>$\tfrac{1}{x}$</td></tr>
+            <tr><td>8</td><td>$a^x$</td><td>$a^x\cdot\ln a$</td></tr>
+            <tr><td>9</td><td>$e^x$</td><td>$e^x$</td></tr>
+            <tr><td>10</td><td>$\sin x$</td><td>$\cos x$</td></tr>
+            <tr><td>11</td><td>$\cos x$</td><td>$-\sin x$</td></tr>
+            <tr><td>12</td><td>$\tan x$</td><td>$\sec^2 x = \tfrac{1}{\cos^2 x}$</td></tr>
+            <tr><td>13</td><td>$\cot x$</td><td>$-\csc^2 x$</td></tr>
+            <tr><td>14</td><td>$\sec x$</td><td>$\sec x\cdot\tan x$</td></tr>
+            <tr><td>15</td><td>$\csc x$</td><td>$-\csc x\cdot\cot x$</td></tr>
+            <tr><td>16</td><td>$\arcsin x$</td><td>$\tfrac{1}{\sqrt{1-x^2}}$</td></tr>
+            <tr><td>17</td><td>$\arccos x$</td><td>$-\tfrac{1}{\sqrt{1-x^2}}$</td></tr>
+            <tr><td>18</td><td>$\arctan x$</td><td>$\tfrac{1}{1+x^2}$</td></tr>
+            <tr><td>19</td><td>$\text{arccot}\, x$</td><td>$-\tfrac{1}{1+x^2}$</td></tr>
+            <tr><td>20</td><td>$k\cdot g(x)$</td><td>$k\cdot g'(x)$</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TABLA DE INTEGRALES -->
+    <section class="card acc2">
+      <h2>Tabla de Integrales</h2>
+      <div class="body">
+        <table class="ftable">
+          <thead>
+            <tr><th>#</th><th>$\int f(x)\,dx$</th><th>Resultado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>$\int c\,dx$</td><td>$cx+k$</td></tr>
+            <tr><td>2</td><td>$\int x^n\,dx\quad n\neq-1$</td><td>$\tfrac{x^{n+1}}{n+1}+k$</td></tr>
+            <tr><td>3</td><td>$\int \frac{1}{x}\,dx\quad x>0$</td><td>$\ln x + k$</td></tr>
+            <tr><td>4</td><td>$\int \frac{1}{x}\,dx$</td><td>$\ln|x|+k$</td></tr>
+            <tr><td>5</td><td>$\int \frac{1}{x+c}\,dx$</td><td>$\ln|x+c|+k$</td></tr>
+            <tr><td>6</td><td>$\int x^{-1}\,dx$</td><td>$\ln|x|+k$</td></tr>
+            <tr><td>7</td><td>$\int e^x\,dx$</td><td>$e^x+k$</td></tr>
+            <tr><td>8</td><td>$\int a^x\,dx$</td><td>$\tfrac{a^x}{\ln a}+k$</td></tr>
+            <tr><td>9</td><td>$\int \sin x\,dx$</td><td>$-\cos x+k$</td></tr>
+            <tr><td>10</td><td>$\int \cos x\,dx$</td><td>$\sin x+k$</td></tr>
+            <tr><td>11</td><td>$\int \sec^2 x\,dx$</td><td>$\tan x+k$</td></tr>
+            <tr><td>12</td><td>$\int \csc^2 x\,dx$</td><td>$-\cot x+k$</td></tr>
+            <tr><td>13</td><td>$\int \sec x\tan x\,dx$</td><td>$\sec x+k$</td></tr>
+            <tr><td>14</td><td>$\int \frac{1}{\sqrt{1-x^2}}\,dx$</td><td>$\arcsin x+k$</td></tr>
+            <tr><td>15</td><td>$\int \frac{1}{1+x^2}\,dx$</td><td>$\arctan x+k$</td></tr>
+            <tr><td>16</td><td>$\int \frac{1}{x^2+1}\,dx$</td><td>$\text{arctg}(x)+k$</td></tr>
+            <tr><td>17</td><td>$\int \frac{1}{\sqrt{1-x^2}}\,dx$</td><td>$-\arccos x+k$</td></tr>
+            <tr><td>18</td><td>$\int \sqrt{1-x^2}\,dx$</td><td>$\tfrac{x\sqrt{1-x^2}}{2}+\tfrac{\arcsin x}{2}+k$</td></tr>
+            <tr><td>19</td><td>$\int \frac{1}{\sqrt{a^2-x^2}}\,dx$</td><td>$\arcsin\!\tfrac{x}{a}+k$</td></tr>
+            <tr><td>20</td><td>$\int \frac{1}{a^2+x^2}\,dx$</td><td>$\tfrac{1}{a}\arctan\!\tfrac{x}{a}+k$</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    Hoja de Fórmulas · Análisis Matemático 2 — Universidad Nacional del Oeste &nbsp;·&nbsp;
+    Maximiliano Rodriguez &nbsp;·&nbsp;
+    <a href="https://www.linkedin.com/in/rodriguez-maxi" target="_blank" style="color:var(--muted);text-decoration:underline;">linkedin.com/in/rodriguez-maxi</a>
+  </footer>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</body>
+</html>

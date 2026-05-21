@@ -61,34 +61,49 @@ export default async function PresentationDetailPage({ params }: Props) {
       </div>
 
       <div className="flex flex-wrap gap-3 mb-8">
-        <Link
-          href={`/${slug}/present`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          ▶ Presentar
-        </Link>
+        {presentation.format !== 'document' && (
+          <Link
+            href={`/${slug}/present`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            ▶ Presentar
+          </Link>
+        )}
         <DownloadButton
           href={`${BASE_PATH}/exports/pdf/${slug}.pdf`}
           filename={`${slug}.pdf`}
           label="Descargar PDF"
         />
-        <DownloadButton
-          href={`${BASE_PATH}/exports/ppt/${slug}.pptx`}
-          filename={`${slug}.pptx`}
-          label="Descargar PPT (imagen)"
-        />
+        {presentation.format !== 'document' && (
+          <DownloadButton
+            href={`${BASE_PATH}/exports/ppt/${slug}.pptx`}
+            filename={`${slug}.pptx`}
+            label="Descargar PPT (imagen)"
+          />
+        )}
       </div>
 
-      <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-black aspect-video">
-        <iframe
-          src={`${BASE_PATH}/${presentation.htmlPath}`}
-          className="w-full h-full"
-          title={presentation.title}
-          sandbox="allow-scripts allow-same-origin"
-        />
-      </div>
+      {presentation.format === 'document' ? (
+        <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-white" style={{ aspectRatio: '210 / 297' }}>
+          <iframe
+            src={`${BASE_PATH}/${presentation.htmlPath}`}
+            className="w-full h-full"
+            title={presentation.title}
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+      ) : (
+        <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-black aspect-video">
+          <iframe
+            src={`${BASE_PATH}/${presentation.htmlPath}`}
+            className="w-full h-full"
+            title={presentation.title}
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+      )}
     </div>
   );
 }

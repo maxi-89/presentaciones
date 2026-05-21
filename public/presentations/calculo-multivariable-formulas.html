@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cálculo Multivariable — Hoja de Fórmulas</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --ink:#1a2238;
+    --accent:#c2410c;
+    --accent2:#0f766e;
+    --line:#dcd6c8;
+    --paper:#fbf9f3;
+    --card:#ffffff;
+    --head:#1a2238;
+    --muted:#6b6456;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Spline Sans',sans-serif;
+    padding:22px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:880px;margin:0 auto;}
+
+  header.title{
+    border-bottom:2.5px solid var(--ink);
+    padding-bottom:8px;margin-bottom:14px;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  }
+  header.title h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;font-size:26px;letter-spacing:-.5px;line-height:1;
+  }
+  header.title .sub{
+    font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;
+    padding-bottom:2px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+  }
+  @media (max-width:760px){ .grid{grid-template-columns:repeat(2,1fr);} }
+
+  .cell{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .card{
+    break-inside:avoid;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 1px 0 rgba(26,34,56,.04);
+  }
+  .card > h2{
+    font-family:'Spline Sans',sans-serif;
+    font-size:10.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
+    color:#fff;background:var(--head);
+    padding:6px 10px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .card.acc > h2{background:var(--accent);}
+  .card.acc2 > h2{background:var(--accent2);}
+  .card .body{padding:8px 10px 10px;}
+
+  .lbl{
+    font-size:10.5px;font-weight:600;color:var(--accent);
+    text-transform:uppercase;letter-spacing:.6px;
+    margin:7px 0 2px;
+  }
+  .card.acc2 .lbl{color:var(--accent2);}
+  .lbl:first-child{margin-top:0;}
+  .note{font-size:10px;color:var(--muted);font-style:italic;margin-top:3px;line-height:1.35;}
+
+  .eq{margin:3px 0;text-align:center;}
+  .katex{font-size:1.02em;}
+  .katex-display{margin:4px 0;}
+
+  ol.cond{margin:2px 0 2px 16px;font-size:11.5px;line-height:1.6;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-around;align-items:center;}
+  .row .eq{flex:1;min-width:90px;}
+
+  footer{
+    margin-top:6px;text-align:center;font-size:10px;color:var(--muted);
+    border-top:1px solid var(--line);padding-top:8px;
+  }
+
+  @media print{
+    @page{size:A4 portrait;margin:5mm;}
+    html{font-size:74%;}
+    body{background:#fff;padding:0;}
+    .sheet{max-width:100%;}
+    header.title{margin-bottom:5px;padding-bottom:3px;}
+    header.title h1{font-size:17px;}
+    .grid{gap:4px;}
+    .cell{gap:4px;}
+    .card{box-shadow:none;}
+    .card > h2{padding:3px 7px;font-size:9px;}
+    .card .body{padding:3px 7px 4px;}
+    .lbl{margin:3px 0 1px;font-size:9px;}
+    .lbl:first-child{margin-top:0;}
+    .eq{margin:0;}
+    .katex-display{margin:0 !important;}
+    .note{font-size:8.5px;line-height:1.15;margin-top:1px;}
+    ol.cond{font-size:10px;line-height:1.3;margin:1px 0 1px 12px;}
+    ul.cond{line-height:1.3;}
+    .row{gap:4px;}
+    footer{margin-top:3px;padding-top:4px;font-size:9px;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header class="title">
+    <div>
+      <h1>Análisis Matemático 2</h1>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;letter-spacing:.3px;">Universidad Nacional del Oeste</div>
+    </div>
+    <span class="sub">Hoja de Fórmulas</span>
+  </header>
+
+  <div class="grid">
+
+    <!-- LÍMITES -->
+    <section class="card acc">
+      <h2>① Límites</h2>
+      <div class="body">
+        <div class="lbl">Reiterados</div>
+        <div class="row">
+          <div class="eq">$$\lim_{x\to x_0}\lim_{y\to y_0} f(x,y)$$</div>
+          <div class="eq">$$\lim_{y\to y_0}\lim_{x\to x_0} f(x,y)$$</div>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <div style="flex:1;">
+            <div class="lbl">Radiales</div>
+            <div class="eq">$$\lim_{\substack{x\to0\\ y=mx}} f(x,y)$$</div>
+          </div>
+          <div style="flex:1;text-align:center;">
+            <div class="lbl">Parabólicos</div>
+            <div class="eq">$$\lim_{\substack{x\to0\\ y=ax^2}} f(x,y)$$</div>
+          </div>
+        </div>
+        <div class="lbl">Polares</div>
+        <div class="eq">$$\lim_{r\to0} f(r\cos\theta,\, r\sin\theta)$$</div>
+      </div>
+    </section>
+
+    <!-- CONTINUIDAD -->
+    <section class="card">
+      <h2>② Continuidad</h2>
+      <div class="body">
+        <div class="note" style="font-style:normal;color:var(--ink);">$f$ es continua en $x_0$ si:</div>
+        <ol class="cond">
+          <li>$f(x_0)=y_1$</li>
+          <li>$\displaystyle\lim_{x\to x_0} f(x)=y_2$</li>
+          <li>$y_1=y_2$</li>
+        </ol>
+        <div class="lbl">Discontinuidad</div>
+        <div class="row" style="margin-top:4px;">
+          <div style="flex:1;text-align:center;">
+            <div class="note" style="font-weight:600;color:var(--ink);font-style:normal;">evitable</div>
+            <div class="eq">$$\exists\,\lim_{x\to x_0} f(x)=a$$</div>
+          </div>
+          <div style="flex:1;text-align:center;">
+            <div class="note" style="font-weight:600;color:var(--ink);font-style:normal;">esencial</div>
+            <div class="eq">$$\nexists\,\lim_{x\to x_0} f(x)$$</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DERIVADAS -->
+    <section class="card acc2">
+      <h2>③ Derivadas</h2>
+      <div class="body">
+        <div class="lbl">Implícita · si $F(x,y,z)=0$</div>
+        <div class="eq">$$\frac{dz}{dx}=-\frac{\partial F/\partial x}{\partial F/\partial z}$$</div>
+        <div class="lbl">Mixta</div>
+        <div class="row">
+          <div class="eq">$$M_{xy}=\frac{d}{dy}\!\left(\frac{\partial f}{\partial x}\right)$$</div>
+          <div class="eq">$$M_{yx}=\frac{d}{dx}\!\left(\frac{\partial f}{\partial y}\right)$$</div>
+        </div>
+        <div class="lbl">Vector gradiente · dir. de máximo crecim.</div>
+        <div class="eq">$$\nabla f=\left(\tfrac{\partial f}{\partial x},\tfrac{\partial f}{\partial y},\tfrac{\partial f}{\partial z}\right)$$</div>
+      </div>
+    </section>
+
+    <!-- DERIVADA DIRECCIONAL -->
+    <section class="card acc2">
+      <h2>④ Derivada direccional</h2>
+      <div class="body">
+        <div class="note" style="font-style:normal;color:var(--ink);">Cuánto cambia $f$ en una dirección dada.</div>
+        <div class="eq">$$D_{\mathbf v}f=\nabla f\cdot\frac{\mathbf v}{|\mathbf v|}$$</div>
+        <div class="note">$\mathbf v$ = dirección.</div>
+        <div class="lbl">Vector unitario</div>
+        <div class="note" style="font-style:normal;color:var(--ink);">Si $|\mathbf u|=1\Rightarrow$ ya es unitario.<br>Si $|\mathbf u|=n\neq1$:</div>
+        <div class="eq">$$\left\langle \tfrac{i}{n},\,\tfrac{j}{n},\,\tfrac{k}{n}\right\rangle$$</div>
+      </div>
+    </section>
+
+    <!-- FUNCIONES VECTORIALES -->
+    <section class="card acc">
+      <h2>⑤ Funciones vectoriales</h2>
+      <div class="body">
+        <div class="row">
+          <div>
+            <div class="lbl" style="text-align:center;">Velocidad</div>
+            <div class="eq">$$\mathbf V(t)=\frac{d\mathbf r(t)}{dt}$$</div>
+          </div>
+          <div>
+            <div class="lbl" style="text-align:center;">Aceleración</div>
+            <div class="eq">$$\mathbf a(t)=\frac{d\mathbf v(t)}{dt}$$</div>
+          </div>
+        </div>
+        <div class="lbl">Rapidez</div>
+        <div class="eq">$$|\mathbf v(t)|$$</div>
+        <div class="lbl">Integrales</div>
+        <div class="eq">$$\int \mathbf a(t)\,dt=\mathbf v(t)+C$$</div>
+        <div class="eq">$$\int \mathbf v(t)\,dt=\mathbf r(t)+C$$</div>
+      </div>
+    </section>
+
+    <!-- TRIEDRO + LONGITUD DE ARCO (par) -->
+    <div class="cell">
+      <section class="card">
+        <h2>⑦ Triedro móvil · Binormal</h2>
+        <div class="body">
+          <div class="row">
+            <div>
+              <div class="lbl" style="text-align:center;">Tangente unit.</div>
+              <div class="eq">$$\mathbf T(t)=\frac{\mathbf r'(t)}{|\mathbf r'(t)|}$$</div>
+            </div>
+            <div>
+              <div class="lbl" style="text-align:center;">Normal unit.</div>
+              <div class="eq">$$\mathbf N(t)=\frac{\mathbf T'(t)}{|\mathbf T'(t)|}$$</div>
+            </div>
+          </div>
+          <div class="lbl">Binormal</div>
+          <div class="eq">$$\mathbf B(t)=\mathbf T(t)\times\mathbf N(t)$$</div>
+        </div>
+      </section>
+
+      <section class="card acc">
+        <h2>⑥ Longitud de arco</h2>
+        <div class="body">
+          <div class="note" style="font-style:normal;color:var(--ink);">Para la curva asociada:</div>
+          <div class="eq">$$L=\int_a^b |\mathbf r'(t)|\,dt$$</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- COMPONENTES ACELERACIÓN -->
+    <section class="card">
+      <h2>⑧ Componentes de la aceleración</h2>
+      <div class="body">
+        <div class="row">
+          <div>
+            <div class="lbl" style="text-align:center;">Tangencial</div>
+            <div class="eq">$$a_T=\frac{\mathbf v(t)\cdot\mathbf a(t)}{|\mathbf v(t)|}$$</div>
+          </div>
+          <div>
+            <div class="lbl" style="text-align:center;">Normal</div>
+            <div class="eq">$$a_N=\frac{|\mathbf v(t)\times\mathbf a(t)|}{|\mathbf v(t)|}$$</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLANO TANGENTE -->
+    <section class="card acc2" style="grid-column: span 2;">
+      <h2>⑨ Plano tangente y recta normal</h2>
+      <div class="body">
+        <div class="lbl">Plano tangente</div>
+        <div class="eq">$$z-z_0=f'_x(x-x_0)+f'_y(y-y_0)$$</div>
+        <div class="eq">$$z=f'_x(x_0,y_0)(x-x_0)+f'_y(x_0,y_0)(y-y_0)+f(x_0,y_0)$$</div>
+        <div class="lbl">Recta normal · simétrica</div>
+        <div class="eq">$$\frac{x-x_0}{f'_x(x_0,y_0)}=\frac{y-y_0}{f'_y(x_0,y_0)}=\frac{z-z_0}{-1}$$</div>
+        <div class="lbl">Recta normal · paramétrica</div>
+        <div class="eq">$$\begin{cases}x=x_0+t\,f'_x(x_0,y_0)\\ y=y_0+t\,f'_y(x_0,y_0)\\ z=z_0-1\cdot t\end{cases}$$</div>
+      </div>
+    </section>
+
+    <!-- REGLA DE LA CADENA + INCREMENTO (par) -->
+    <div class="cell">
+      <section class="card">
+        <h2>⑩ Regla de la cadena</h2>
+        <div class="body">
+          <div class="eq">$$\frac{dz}{dt}=\frac{dz}{dx}\cdot\frac{dx}{dt}+\frac{dz}{dy}\cdot\frac{dy}{dt}$$</div>
+          <div class="note">Derivar las 4 parciales y reemplazar.</div>
+        </div>
+      </section>
+
+      <section class="card acc">
+        <h2>⑪ Incremento y diferencial</h2>
+        <div class="body">
+          <div class="lbl">Incremento</div>
+          <div class="eq">$$\Delta z=z_1-z_0=f(x+\Delta x,\,y+\Delta y)-f(x,y)$$</div>
+          <div class="lbl">Diferencial</div>
+          <div class="eq">$$dz=f'_x(x_0,y_0)\,dx+f'_y(x_0,y_0)\,dy$$</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- MÁXIMO Y MÍNIMO -->
+    <section class="card acc2">
+      <h2>⑫ Máximo / Mínimo local</h2>
+      <div class="body">
+        <div class="lbl">Puntos críticos — $\nabla f=\mathbf{0}$</div>
+        <div class="note" style="font-style:normal;color:var(--ink);">Resolver $f_x=0$ y $f_y=0$ simultáneamente.</div>
+        <div class="lbl">Criterio de la 2ª derivada</div>
+        <div class="eq">$$D=f_{xx}f_{yy}-(f_{xy})^2$$</div>
+        <ul class="cond" style="list-style:none;margin-left:0;">
+          <li>$D>0,\;f_{xx}>0\;\Rightarrow$ mínimo</li>
+          <li>$D>0,\;f_{xx}<0\;\Rightarrow$ máximo</li>
+          <li>$D<0\;\Rightarrow$ punto de silla</li>
+          <li>$D=0\;\Rightarrow$ no concluyente</li>
+        </ul>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>
+    Hoja de Fórmulas · Análisis Matemático 2 — Universidad Nacional del Oeste &nbsp;·&nbsp;
+    Maximiliano Rodriguez &nbsp;·&nbsp;
+    <a href="https://www.linkedin.com/in/rodriguez-maxi" target="_blank" style="color:var(--muted);text-decoration:underline;">linkedin.com/in/rodriguez-maxi</a>
+  </footer>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: "$$", right: "$$", display: true},
+        {left: "$", right: "$", display: false}
+      ],
+      throwOnError: false
+    });
+  });
+</script>
+</body>
+</html>
